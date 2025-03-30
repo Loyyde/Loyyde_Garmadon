@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Slideshow</title>
+    <style>
+        /* ... (Your existing CSS styles from the previous response) ... */
+    </style>
+</head>
+<body>
+
+    <div class="slideshow-container">
+        <div id="slides">
+            </div>
+        <div id="slide-name" class="slide-name"></div>
+        <div id="dots-container" class="dots-container">
+            </div>
+    </div>
+
+    <script src="image_list.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slideshowContainer = document.querySelector('.slideshow-container');
+            const slidesContainer = document.getElementById('slides');
+            const slideNameDisplay = document.getElementById('slide-name');
+            const dotsContainer = document.getElementById('dots-container');
+            let slides = [];
+            let currentIndex = 0;
+            let intervalId;
+
+            function loadSlides() {
+                slidesContainer.innerHTML = '';
+                dotsContainer.innerHTML = '';
+                slides = imageFilenames.map((filename, index) => {
+                    const slide = document.createElement('div');
+                    slide.classList.add('slide');
+                    const img = document.createElement('img');
+                    img.src = 'Slide/' + filename;
+                    img.alt = filename;
+                    slide.appendChild(img);
+                    slidesContainer.appendChild(slide);
+
+                    const dot = document.createElement('div');
+                    dot.classList.add('dot');
+                    dot.addEventListener('click', () => goToSlide(index));
+                    dotsContainer.appendChild(dot);
+
+                    return slide;
+                });
+                updateDots();
+                showSlide(currentIndex);
+            }
+
+            function showSlide(index, direction = 'next') {
+                if (slides.length === 0) return;
+
+                const prevIndex = currentIndex;
+                currentIndex = (index + slides.length) % slides.length;
+
+                slides.forEach(slide => {
+                    slide.classList.remove('active', 'prev');
+                });
+
+                if (direction === 'next') {
+                    slides[currentIndex].classList.add('active');
+                    if (prevIndex !== currentIndex) {
+                        slides[prevIndex].classList.add('prev');
+                    }
+                } else if (direction === 'prev') {
+                    slides[currentIndex].classList.add('active');
+                    if (prevIndex !== currentIndex) {
+                        slides[prevIndex].classList.add('prev');
+                        // Adjust classes for reverse animation
+                        slides[currentIndex].style.transform = 'translateX(-100%)';
+                        setTimeout(() => {
+                            slides[currentIndex].style.transform = 'translateX(0)';
+                            slides[prevIndex].style.transform = 'translateX(100%)';
+                        }, 50);
+                    }
+                } else {
+                    slides[currentIndex].classList.add('active');
+                    if (prevIndex !== currentIndex) {
+                        slides[prevIndex].classList.add('prev');
+                        // Determine direction based on index difference for dot clicks
+                        if (index > prevIndex) {
+                            slides[currentIndex].style.transform = 'translateX(100%)';
+                            setTimeout(() => {
+                                slides[currentIndex].style.transform = 'translateX(0)';
+                                slides[prevIndex].style.transform = 'translateX(-100%)';
+                            }, 50);
+                        } else if (index < prevIndex) {
+                            slides[currentIndex].style.transform = 'translateX(-100%)';
+                            setTimeout(() => {
+                                slides[currentIndex].style.transform = 'translateX(0)';
+                                slides[prevIndex].style.transform = 'translateX(100%)';
+                            }, 50);
+                        }
+                    }
+                }
+
+
+                slideNameDisplay.textContent = imageFilenames[currentIndex];
+                updateDots();
+            }
+
+            function nextSlide() {
+                showSlide((currentIndex + 1) % slides.length, 'next');
+            }
+
+            function prevSlide() {
+                showSlide((currentIndex - 1 + slides.length) % slides.length, 'prev');
+            }
+
+            function goToSlide(index) {
+                if (index !== currentIndex) {
+                    showSlide(index, index > currentIndex ? 'next' : 'prev');
+                    clearInterval(intervalId); // Stop auto-play when manually navigating
+                    startAutoplay(); // Restart auto-play
+                }
+            }
+
+            function updateDots() {
+                const dots = document.querySelectorAll('.dot');
+                dots.forEach((dot, index) => {
+                    dot.classList.remove('active');
+                    if (index === currentIndex) {
+                        dot.classList.add('active');
+                    }
+                });
+            }
+
+            function startAutoplay() {
+                clearInterval(intervalId);
+                intervalId = setInterval(nextSlide, 5000);
+            }
+
+            loadSlides();
+            startAutoplay();
+        });
+    </script>
+
+</body>
+</html>
