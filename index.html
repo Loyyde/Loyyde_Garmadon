@@ -129,6 +129,12 @@
             background-color: #ccc;
         }
 
+        /* New style for the active filter title */
+        .filter-title.active {
+            background-color: black;
+            color: white;
+        }
+
         #showcase-images {
             display: flex;
             flex-wrap: wrap;
@@ -210,11 +216,13 @@
     <div id="footer-container"></div>
 
     <script src="image_list.js"></script>
-    <script src="slideshow.js"></script> <script>
+    <script src="slideshow.js"></script>
+    <script>
         const slideshowWrapper = document.getElementById('slideshow-wrapper');
         const slideshowContainer = document.getElementById('slideshow-container');
         const rectangleContainer = document.getElementById('rectangle-container');
         const showcaseImagesContainer = document.getElementById('showcase-images');
+        const filterTitlesContainer = document.getElementById('filter-titles'); // Get the container
         let imagesElements = [];
         let rectangles = [];
         let currentIndex = 0;
@@ -237,7 +245,6 @@
                 const content = await response.text();
                 console.log(`Successfully loaded content from: ${url}`);
                 document.getElementById(containerId).innerHTML = content;
-                // Removed header script handling
             } catch (error) {
                 console.error(`Error during fetch for ${url}:`, error);
                 document.getElementById(containerId).textContent = `Error loading ${url}. Check the console for details.`;
@@ -245,7 +252,7 @@
         };
 
         const loadSlides = (filenames) => {
-            stopSlideshow(); // stopSlideshow should now be defined
+            stopSlideshow();
             slideshowContainer.innerHTML = '';
             rectangleContainer.innerHTML = '';
             imagesElements = [];
@@ -309,6 +316,16 @@
         const loadShowcase = (folderName) => {
             showcaseImagesContainer.innerHTML = '';
             document.getElementById('load-more-button')?.remove();
+
+            // Remove active class from all filter titles
+            document.querySelectorAll('.filter-title').forEach(title => title.classList.remove('active'));
+
+            // Add active class to the currently selected filter title
+            const activeTitle = Array.from(document.querySelectorAll('.filter-title')).find(title => title.textContent === folderName);
+            if (activeTitle) {
+                activeTitle.classList.add('active');
+            }
+
             const showcaseBasePath = 'Showcase/';
             const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas'];
             allFilteredFilenames = (folderName === 'All' ?
@@ -336,6 +353,7 @@
             }
 
             if (imageFilenames?.showcaseImageFilenames) {
+                // Initially load and activate the 'All' filter
                 loadShowcase('All');
             } else {
                 console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found in image_list.js");
