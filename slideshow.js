@@ -1,3 +1,25 @@
+// document.addEventListener('DOMContentLoaded', () => {
+//     const container = document.getElementById('slideshow-container');
+//     const slides = container ? container.querySelectorAll('img') : [];
+//     if (slides.length > 0) {
+//         slides.forEach((slide, index) => {
+//             slide.classList.remove('slide-active', 'slide-prev', 'slide-next');
+//             slide.style.transform = `translateX(${index === 0 ? 0 : 100}%)`;
+//             slide.style.zIndex = 1;
+//             if (index === 0) {
+//                 slide.classList.add('slide-active');
+//                 slide.style.zIndex = 2;
+//             }
+//         });
+//         const rectContainer = document.getElementById('rectangle-container');
+//         const rects = rectContainer ? rectContainer.querySelectorAll('.rectangle') : [];
+//         if (rects.length > 0) {
+//             rects.forEach((rect, index) => rect.classList.toggle('active', index === 0));
+//         }
+//         if (slides.length > 1) startSlideshow();
+//     }
+// });
+
 function showImage(index, direction = 'next') {
     if (index === currentIndex && imagesElements?.[index]?.classList.contains('slide-active')) return;
     if (!imagesElements?.length) return;
@@ -68,26 +90,3 @@ function startSlideshow() {
 function stopSlideshow() {
     clearInterval(slideshowInterval);
 }
-
-// Initialization to show the first slide without animation on load
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('slideshow-container');
-    const slides = container ? container.querySelectorAll('img') : [];
-    if (slides.length > 0) {
-        slides.forEach((slide, index) => {
-            slide.classList.remove('slide-active', 'slide-prev', 'slide-next');
-            slide.style.transform = `translateX(${index === 0 ? 0 : 100}%)`;
-            slide.style.zIndex = 1;
-            if (index === 0) {
-                slide.classList.add('slide-active');
-                slide.style.zIndex = 2;
-            }
-        });
-        const rectContainer = document.getElementById('rectangle-container');
-        const rects = rectContainer ? rectContainer.querySelectorAll('.rectangle') : [];
-        if (rects.length > 0) {
-            rects.forEach((rect, index) => rect.classList.toggle('active', index === 0));
-        }
-        if (slides.length > 1) startSlideshow();
-    }
-});
