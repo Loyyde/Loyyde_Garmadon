@@ -64,9 +64,10 @@
             position: absolute; /* Position slides absolutely within container */
             top: 0;
             left: 0; /* Default position */
-            opacity: 0; /* Start hidden */
+            opacity: 1; /* Ensure always visible */
             transform: translateX(100%); /* Start off-screen right */
-            transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; /* Smooth transition */
+            /* --- MODIFIED: Removed opacity from transition --- */
+            transition: transform 0.8s ease-in-out; /* Smooth transition ONLY for transform */
             display: block; /* Ensure images are block-level */
             z-index: 1; /* Default stack order */
         }
@@ -74,28 +75,28 @@
         /* State for the slide currently visible */
         #slideshow-container img.slide-active {
             transform: translateX(0); /* Bring to center */
-            opacity: 1;
+            /* opacity: 1; - Removed, opacity is always 1 */
             z-index: 2; /* Bring active slide to the front */
         }
 
         /* State for the slide moving out (to the left) */
         #slideshow-container img.slide-prev {
             transform: translateX(-100%); /* Move off-screen left */
-            opacity: 0;
+            /* opacity: 0; - Removed, opacity is always 1 */
             z-index: 1; /* Ensure it goes behind the new active */
         }
 
          /* Initial position for a slide coming from the right (Next) */
          #slideshow-container img.slide-next-position {
              transform: translateX(100%);
-             opacity: 0;
+             /* opacity: 0; - Removed, opacity is always 1 */
              z-index: 1;
          }
 
          /* Initial position for a slide coming from the left (Previous) */
          #slideshow-container img.slide-prev-position {
              transform: translateX(-100%);
-             opacity: 0;
+             /* opacity: 0; - Removed, opacity is always 1 */
              z-index: 1;
          }
 
@@ -303,7 +304,8 @@
                     img.classList.add('slide-next-position'); // Position off-screen right
                     // Restore transition after a tick
                     setTimeout(() => {
-                        img.style.transition = 'transform 0.8s ease-in-out, opacity 0.8s ease-in-out';
+                         /* --- MODIFIED: Restore only transform transition --- */
+                         img.style.transition = 'transform 0.8s ease-in-out';
                     }, 50);
                  }
             });
@@ -392,7 +394,8 @@
                  imagesElements[0].classList.add('slide-active');
                  // Restore transition after a tick
                  setTimeout(() => {
-                     imagesElements[0].style.transition = 'transform 0.8s ease-in-out, opacity 0.8s ease-in-out';
+                     /* --- MODIFIED: Restore only transform transition --- */
+                     imagesElements[0].style.transition = 'transform 0.8s ease-in-out';
                  }, 50);
 
                 updateRectangles(); // Update dots for the first slide
