@@ -43,10 +43,11 @@
             justify-content: center;
             width: 100%;
             max-height: 100vh;
-            overflow-y: auto;
+            overflow: hidden; /* Ensure the sliding images don't cause overflow */
             margin: 20px 0;
             margin-top: -30px;
             z-index: 1;
+            position: relative; /* Needed for absolute positioning of images */
         }
 
         #slideshow-container img {
@@ -54,11 +55,36 @@
             height: auto;
             max-height: 100vh;
             object-fit: contain;
-            display: none;
+            position: absolute; /* Position images on top of each other */
+            top: 0;
+            left: 0;
+            opacity: 0; /* Initially hide all images */
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; /* Transition for opacity and transform */
         }
 
         #slideshow-container img.active {
-            display: block;
+            opacity: 1;
+            transform: translateX(0); /* Reset horizontal position */
+        }
+
+        #slideshow-container img.slide-from-right {
+            transform: translateX(100%); /* Start from the right */
+            opacity: 1; /* Make it visible to slide in */
+        }
+
+        #slideshow-container img.slide-to-left {
+            transform: translateX(-100%); /* Slide to the left */
+            opacity: 1; /* Keep it visible during slide out */
+        }
+
+        #slideshow-container img.slide-from-left {
+            transform: translateX(-100%); /* Start from the left */
+            opacity: 1; /* Make it visible to slide in */
+        }
+
+        #slideshow-container img.slide-to-right {
+            transform: translateX(100%); /* Slide to the right */
+            opacity: 1; /* Keep it visible during slide out */
         }
 
         #rectangle-container {
@@ -175,16 +201,9 @@
     <div id="footer-container"></div>
 
     <script src="image_list.js"></script>
+    <script src="slideshow.js"></script>
     <script>
-        const slideshowContainer = document.getElementById('slideshow-container');
-        const rectangleContainer = document.getElementById('rectangle-container');
         const showcaseImagesContainer = document.getElementById('showcase-images');
-        let imagesElements = [];
-        let rectangles = [];
-        let currentIndex = 0;
-        const intervalTime = 5000;
-        let slideshowInterval;
-        const preloadedImages = [];
         const initialImageCount = 12;
         let displayedImageCount = 0;
         let allFilteredFilenames = [];
@@ -204,75 +223,11 @@
         loadContent('Footer.html', 'footer-container');
 
         document.addEventListener('DOMContentLoaded', () => {
-            slideshowContainer.style.height = `${window.innerHeight}px`;
-        });
-
-        const showImage = (index) => {
-            imagesElements.forEach(img => img.classList.remove('active'));
-            imagesElements[index].classList.add('active');
-        };
-
-        const updateRectangles = () => {
-            rectangles.forEach((rect, index) => {
-                rect.classList.remove('active');
-                if (index === currentIndex) rect.classList.add('active');
-            });
-        };
-
-        const startSlideshow = () => {
-            clearInterval(slideshowInterval);
-            slideshowInterval = setInterval(() => {
-                currentIndex = (currentIndex + 1) % imagesElements.length;
-                showImage(currentIndex);
-                updateRectangles();
-            }, intervalTime);
-        };
-
-        const loadSlides = (filenames) => {
-            slideshowContainer.innerHTML = '';
-            rectangleContainer.innerHTML = '';
-            imagesElements = [];
-            rectangles = [];
-            currentIndex = 0;
-            preloadedImages.length = 0; // Clear preloaded images
-
-            filenames.forEach(filename => {
-                const img = new Image();
-                img.src = filename;
-                preloadedImages.push(img);
-            });
-
-            filenames.forEach((filename, index) => {
-                const img = document.createElement('img');
-                img.src = filename;
-                slideshowContainer.appendChild(img);
-                imagesElements.push(img);
-
-                const rectangle = document.createElement('div');
-                rectangle.className = 'rectangle';
-                rectangle.dataset.index = index;
-                rectangle.addEventListener('click', () => {
-                    currentIndex = index;
-                    showImage(currentIndex);
-                    updateRectangles();
-                    startSlideshow();
-                });
-                rectangleContainer.appendChild(rectangle);
-                rectangles.push(rectangle);
-            });
-
-            if (imagesElements.length > 0) {
-                showImage(currentIndex);
-                updateRectangles();
-                startSlideshow();
-                setTimeout(() => {
-                    slideshowContainer.style.height = 'auto';
-                    slideshowContainer.style.maxHeight = 'none';
-                }, 100);
-            } else {
-                slideshowContainer.textContent = "No images found for the slideshow.";
+            const slideshowContainer = document.getElementById('slideshow-container');
+            if (slideshowContainer) {
+                slideshowContainer.style.height = `${window.innerHeight}px`;
             }
-        };
+        });
 
         const createImageContainer = (filename) => {
             const container = document.createElement('div');
@@ -325,9 +280,13 @@
 
         if (typeof imageFilenames?.slideImageFilenames?.length) {
             loadSlides(imageFilenames.slideImageFilenames);
+            initSlideshow(); // Initialize slideshow after loading slides
         } else {
             console.error("Error: 'imageFilenames.slideImageFilenames' array not found or is not an array in image_list.js");
-            slideshowContainer.textContent = "Error: Slide image list not found.";
+            const slideshowContainer = document.getElementById('slideshow-container');
+            if (slideshowContainer) {
+                slideshowContainer.textContent = "Error: Slide image list not found.";
+            }
         }
 
         if (typeof imageFilenames?.showcaseImageFilenames?.length) {
