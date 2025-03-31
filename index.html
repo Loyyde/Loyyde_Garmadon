@@ -48,6 +48,7 @@
             margin: 20px 0;
             margin-top: -30px;
             z-index: 1;
+            perspective: 1000px; /* Add perspective for 3D effect */
         }
 
         .slide-container {
@@ -61,13 +62,15 @@
             align-items: center;
             justify-content: center;
             opacity: 0; /* For a smoother transition */
-            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out; /* Smooth transition for transform and opacity */
+            transform-style: preserve-3d; /* Enable 3D transformations on children */
+            transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out; /* Smooth transition */
+            backface-visibility: hidden; /* Hide the back face during rotation */
         }
 
         .slide-container.active {
             display: flex;
             opacity: 1;
-            transform: translateX(0); /* Final position */
+            transform: rotateY(0deg); /* Final rotation */
         }
 
         .slide-container img {
@@ -170,41 +173,41 @@
             bottom: 0; /* Slide up on hover */
         }
 
-        /* Animation classes for push effect */
-        .slide-to-left {
-            animation: slideToLeft 0.5s ease-in-out forwards;
+        /* Animation classes for revolving effect */
+        .rotate-out-left {
+            animation: rotateOutLeft 0.8s ease-in-out forwards;
         }
 
-        .slide-from-right {
-            animation: slideFromRight 0.5s ease-in-out forwards;
+        .rotate-in-right {
+            animation: rotateInRight 0.8s ease-in-out forwards;
         }
 
-        .slide-to-right {
-            animation: slideToRight 0.5s ease-in-out forwards;
+        .rotate-out-right {
+            animation: rotateOutRight 0.8s ease-in-out forwards;
         }
 
-        .slide-from-left {
-            animation: slideFromLeft 0.5s ease-in-out forwards;
+        .rotate-in-left {
+            animation: rotateInLeft 0.8s ease-in-out forwards;
         }
 
-        @keyframes slideToLeft {
-            from { transform: translateX(0); }
-            to { transform: translateX(-100%); }
+        @keyframes rotateOutLeft {
+            from { transform: rotateY(0deg); opacity: 1; }
+            to { transform: rotateY(-90deg); opacity: 0; }
         }
 
-        @keyframes slideFromRight {
-            from { transform: translateX(100%); opacity: 1; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes rotateInRight {
+            from { transform: rotateY(90deg); opacity: 0; }
+            to { transform: rotateY(0deg); opacity: 1; }
         }
 
-        @keyframes slideToRight {
-            from { transform: translateX(0); }
-            to { transform: translateX(100%); }
+        @keyframes rotateOutRight {
+            from { transform: rotateY(0deg); opacity: 1; }
+            to { transform: rotateY(90deg); opacity: 0; }
         }
 
-        @keyframes slideFromLeft {
-            from { transform: translateX(-100%); opacity: 1; }
-            to { transform: translateX(0); opacity: 1; }
+        @keyframes rotateInLeft {
+            from { transform: rotateY(-90deg); opacity: 0; }
+            to { transform: rotateY(0deg); opacity: 1; }
         }
     </style>
 </head>
@@ -279,7 +282,7 @@
             const nextSlide = slides[currentIndex];
 
             slides.forEach(slide => {
-                slide.classList.remove('active', 'slide-to-left', 'slide-from-right', 'slide-to-right', 'slide-from-left');
+                slide.classList.remove('active', 'rotate-out-left', 'rotate-in-right', 'rotate-out-right', 'rotate-in-left');
             });
 
             if (nextSlide) {
@@ -287,15 +290,15 @@
                 if (currentIndex > previousIndex || (previousIndex === slides.length - 1 && currentIndex === 0)) {
                     // Next slide or last to first
                     if (currentSlide) {
-                        currentSlide.classList.add('slide-to-left');
+                        currentSlide.classList.add('rotate-out-left');
                     }
-                    nextSlide.classList.add('slide-from-right');
+                    nextSlide.classList.add('rotate-in-right');
                 } else if (currentIndex < previousIndex || (previousIndex === 0 && currentIndex === slides.length - 1)) {
                     // Previous slide or first to last
                     if (currentSlide) {
-                        currentSlide.classList.add('slide-to-right');
+                        currentSlide.classList.add('rotate-out-right');
                     }
-                    nextSlide.classList.add('slide-from-left');
+                    nextSlide.classList.add('rotate-in-left');
                 } else if (currentIndex === previousIndex && slides.length > 0) {
                     // Handle initial load or same index (no animation)
                     nextSlide.classList.add('active');
