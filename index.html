@@ -115,17 +115,16 @@
         .image-container {
             position: relative;
             overflow: hidden;
-            width: calc(20% - 10px); /* Roughly 1/5th width with spacing */
+            width: calc(19% - 10px); /* Adjusted for 5 in a row with spacing */
+            height: 150px; /* Fixed height for all images */
             margin-bottom: 10px; /* Spacing between rows */
-            border-radius: 5px;
         }
 
         #showcase-images img {
             display: block; /* Ensure image takes the full width of the container */
             width: 100%;
-            height: auto;
-            object-fit: cover;
-            border-radius: 5px;
+            height: 100%;
+            object-fit: cover; /* Ensure images fill the container without distortion */
         }
 
         .overlay {
@@ -143,6 +142,20 @@
 
         .image-container:hover .overlay {
             bottom: 0; /* Slide up on hover */
+        }
+
+        #load-more-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #load-more-button:hover {
+            background-color: #eee;
         }
     </style>
 </head>
@@ -290,6 +303,9 @@
             let filteredFilenames = [];
             const showcaseBasePath = 'Showcase/';
             const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas']; // Updated folder names
+            const initialImageCount = 12;
+            let displayedImageCount = 0;
+            let allFilteredFilenames = []; // Store all filtered filenames
 
             if (folderName === 'All') {
                 let allImages = [];
@@ -297,10 +313,13 @@
                     const folderImages = imageFilenames.showcaseImageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folder + '/'));
                     allImages = [...allImages, ...folderImages];
                 });
-                filteredFilenames = [...new Set(allImages)];
+                allFilteredFilenames = [...new Set(allImages)];
             } else {
-                filteredFilenames = imageFilenames.showcaseImageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
+                allFilteredFilenames = imageFilenames.showcaseImageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
             }
+
+            filteredFilenames = allFilteredFilenames.slice(0, initialImageCount);
+            displayedImageCount = filteredFilenames.length;
 
             filteredFilenames.forEach(filename => {
                 const imageContainer = document.createElement('div');
@@ -320,7 +339,34 @@
                 showcaseImagesContainer.appendChild(imageContainer);
             });
 
-            if (filteredFilenames.length === 0) {
+            if (allFilteredFilenames.length > initialImageCount) {
+                const loadMoreButton = document.createElement('button');
+                loadMoreButton.id = 'load-more-button';
+                loadMoreButton.textContent = 'Load More';
+                showcaseImagesContainer.appendChild(loadMoreButton);
+
+                loadMoreButton.addEventListener('click', () => {
+                    const remainingFilenames = allFilteredFilenames.slice(displayedImageCount);
+                    remainingFilenames.forEach(filename => {
+                        const imageContainer = document.createElement('div');
+                        imageContainer.classList.add('image-container');
+
+                        const img = document.createElement('img');
+                        img.src = filename;
+
+                        const overlay = document.createElement('div');
+                        overlay.classList.add('overlay');
+                        const parts = filename.split('/');
+                        const imageName = parts[parts.length - 1];
+                        overlay.textContent = imageName;
+
+                        imageContainer.appendChild(img);
+                        imageContainer.appendChild(overlay);
+                        showcaseImagesContainer.insertBefore(imageContainer, loadMoreButton); // Insert before the button
+                    });
+                    loadMoreButton.remove(); // Remove the button after loading all images
+                });
+            } else if (allFilteredFilenames.length === 0) {
                 showcaseImagesContainer.textContent = "No images found for this category.";
             }
         }
