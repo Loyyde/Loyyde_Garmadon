@@ -43,10 +43,11 @@
             justify-content: center;
             width: 100%;
             max-height: 100vh;
-            overflow-y: auto;
+            overflow: hidden; /* Ensure the sliding images don't cause overflow */
             margin: 20px 0;
             margin-top: -30px;
             z-index: 1;
+            position: relative; /* Needed for absolute positioning of images */
         }
 
         #slideshow-container img {
@@ -54,11 +55,36 @@
             height: auto;
             max-height: 100vh;
             object-fit: contain;
-            display: none;
+            position: absolute; /* Position images on top of each other */
+            top: 0;
+            left: 0;
+            opacity: 0; /* Initially hide all images */
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; /* Transition for opacity and transform */
         }
 
         #slideshow-container img.active {
-            display: block;
+            opacity: 1;
+            transform: translateX(0); /* Reset horizontal position */
+        }
+
+        #slideshow-container img.slide-from-right {
+            transform: translateX(100%); /* Start from the right */
+            opacity: 1; /* Make it visible to slide in */
+        }
+
+        #slideshow-container img.slide-to-left {
+            transform: translateX(-100%); /* Slide to the left */
+            opacity: 1; /* Keep it visible during slide out */
+        }
+
+        #slideshow-container img.slide-from-left {
+            transform: translateX(-100%); /* Start from the left */
+            opacity: 1; /* Make it visible to slide in */
+        }
+
+        #slideshow-container img.slide-to-right {
+            transform: translateX(100%); /* Slide to the right */
+            opacity: 1; /* Keep it visible during slide out */
         }
 
         #rectangle-container {
@@ -188,6 +214,7 @@
         const initialImageCount = 12;
         let displayedImageCount = 0;
         let allFilteredFilenames = [];
+        let isAnimating = false; // Flag to prevent rapid clicks
 
         const loadContent = async (url, containerId) => {
             try {
@@ -207,9 +234,38 @@
             slideshowContainer.style.height = `${window.innerHeight}px`;
         });
 
-        const showImage = (index) => {
-            imagesElements.forEach(img => img.classList.remove('active'));
-            imagesElements[index].classList.add('active');
+        const showImage = (index, direction) => {
+            if (isAnimating || imagesElements.length <= 1) return;
+            isAnimating = true;
+
+            const previousIndex = currentIndex;
+            currentIndex = index;
+            const currentImage = imagesElements[previousIndex];
+            const nextImage = imagesElements[currentIndex];
+
+            nextImage.classList.remove('active');
+            currentImage.classList.remove('active');
+            nextImage.classList.remove('slide-from-right', 'slide-to-left', 'slide-from-left', 'slide-to-right');
+            currentImage.classList.remove('slide-from-right', 'slide-to-left', 'slide-from-left', 'slide-to-right');
+
+            if (direction === 'next') {
+                nextImage.classList.add('slide-from-right');
+                currentImage.classList.add('slide-to-left');
+            } else if (direction === 'prev') {
+                nextImage.classList.add('slide-from-left');
+                currentImage.classList.add('slide-to-right');
+            }
+
+            // Force reflow to trigger the animation
+            void nextImage.offsetWidth;
+
+            nextImage.classList.add('active');
+
+            setTimeout(() => {
+                currentImage.classList.remove('slide-to-left', 'slide-to-right');
+                nextImage.classList.remove('slide-from-right', 'slide-from-left');
+                isAnimating = false;
+            }, 500); // Duration of the transition
         };
 
         const updateRectangles = () => {
@@ -222,8 +278,8 @@
         const startSlideshow = () => {
             clearInterval(slideshowInterval);
             slideshowInterval = setInterval(() => {
-                currentIndex = (currentIndex + 1) % imagesElements.length;
-                showImage(currentIndex);
+                const nextIndex = (currentIndex + 1) % imagesElements.length;
+                showImage(nextIndex, 'next');
                 updateRectangles();
             }, intervalTime);
         };
@@ -234,7 +290,7 @@
             imagesElements = [];
             rectangles = [];
             currentIndex = 0;
-            preloadedImages.length = 0; // Clear preloaded images
+            preloadedImages.length = 0;
 
             filenames.forEach(filename => {
                 const img = new Image();
@@ -252,8 +308,11 @@
                 rectangle.className = 'rectangle';
                 rectangle.dataset.index = index;
                 rectangle.addEventListener('click', () => {
-                    currentIndex = index;
-                    showImage(currentIndex);
+                    if (index > currentIndex) {
+                        showImage(index, 'next');
+                    } else if (index < currentIndex) {
+                        showImage(index, 'prev');
+                    }
                     updateRectangles();
                     startSlideshow();
                 });
@@ -262,7 +321,7 @@
             });
 
             if (imagesElements.length > 0) {
-                showImage(currentIndex);
+                showImage(currentIndex, 'none'); // Initial display without animation
                 updateRectangles();
                 startSlideshow();
                 setTimeout(() => {
@@ -336,6 +395,26 @@
             console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found or is not an array in image_list.js");
             showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
         }
+
+        // Auto start slideshow
+        startSlideshow();
+
+        // Add manual navigation for rectangles
+        rectangleContainer.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('rectangle')) {
+                const index = parseInt(target.dataset.index);
+                if (!isNaN(index)) {
+                    if (index > currentIndex) {
+                        showImage(index, 'next');
+                    } else if (index < currentIndex) {
+                        showImage(index, 'prev');
+                    }
+                    updateRectangles();
+                    startSlideshow(); // Restart interval on manual click
+                }
+            }
+        });
     </script>
 </body>
 </html>
