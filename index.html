@@ -81,6 +81,9 @@
         #slideshow-container img.slide-prev {
             transform: translateX(-100%); /* Move off-screen left */
             z-index: 1;
+            /* Add a style to make preceding slides partially visible if needed */
+            /* opacity: 0.5;
+            transform: translateX(-50%); */
         }
 
         /* --- NEW: State for the slide moving out (to the RIGHT) - Used when going BACKWARD --- */
@@ -285,29 +288,31 @@
             const nextSlide = imagesElements[nextIndex];
             const outgoingSlide = imagesElements[outgoingIndex];
 
-            if (!nextSlide || !outgoingSlide) return;
+            if (!nextSlide) return;
 
             imagesElements.forEach((img, i) => {
                 img.classList.remove('slide-active', 'slide-next', 'slide-next-position', 'slide-prev-position');
-                if (i !== nextIndex) {
+                if (i < currentIndex) {
+                    img.classList.add('slide-prev');
+                } else if (i > currentIndex) {
+                    img.classList.add('slide-next-position'); // Position off-screen right
                     img.style.transition = 'none';
-                    img.classList.add('slide-next-position');
                     setTimeout(() => {
-                        img.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is set
+                        img.style.transition = 'transform 0.5s ease-in-out';
                     }, 50);
                 }
             });
 
-            nextSlide.classList.remove('slide-prev', 'slide-next', 'slide-next-position', 'slide-prev-position');
+            nextSlide.classList.remove('slide-prev', 'slide-next-position');
             nextSlide.classList.add('slide-active');
-            nextSlide.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is set
+            nextSlide.style.transition = 'transform 0.5s ease-in-out';
 
             if (outgoingIndex !== -1 && outgoingIndex !== nextIndex) {
-                outgoingSlide.classList.remove('slide-active', 'slide-next-position', 'slide-prev-position');
-                outgoingSlide.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is set
+                outgoingSlide.classList.remove('slide-active', 'slide-next-position');
+                outgoingSlide.style.transition = 'transform 0.5s ease-in-out';
+                // The outgoing slide should animate based on the overall direction of change
                 outgoingSlide.classList.add(direction === 'next' ? 'slide-prev' : 'slide-next');
             } else if (outgoingIndex === -1 && imagesElements.length > 0) {
-                // Initial load, set the first slide to active without animation
                 imagesElements[0].classList.add('slide-active');
             }
 
