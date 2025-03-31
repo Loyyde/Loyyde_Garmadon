@@ -293,7 +293,7 @@
         // Initially load all showcase images
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
             allShowcaseFilenames = [...imageFilenames]; // Store the initial list of showcase images
-            loadShowcase('All');
+            loadShowcase('All'); // Call loadShowcase after populating allShowcaseFilenames
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
             showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
