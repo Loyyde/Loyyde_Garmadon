@@ -9,9 +9,17 @@
             background-color: #f2f2f2;
             margin: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column; /* Arrange header, content, and footer vertically */
             align-items: center;
             min-height: 100vh;
+        }
+
+        #header-container,
+        #footer-container {
+            width: 100%; /* Make header and footer span the full width */
+            text-align: center; /* Center content within header and footer */
+            padding: 10px 0; /* Add some padding */
+            background-color: #ddd; /* Example background color */
         }
 
         #slideshow-container {
@@ -19,14 +27,16 @@
             flex-direction: column; /* Change to column for vertical layout */
             align-items: center; /* Center images horizontally */
             justify-content: center; /* Center image vertically within the container */
-            width: 300px; /* Set a fixed width for the slideshow */
-            height: 200px; /* Set a fixed height for the slideshow */
+            width: 100%; /* Make slideshow container take full width */
+            max-height: 100vh; /* Initially set max height to screen height */
             overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
+            margin: 20px 0; /* Add some margin above and below the slideshow */
         }
 
         #slideshow-container img {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%; /* Make image scale with container width */
+            height: auto; /* Maintain aspect ratio */
+            max-height: 100vh; /* Initially ensure image doesn't exceed screen height */
             object-fit: contain; /* Ensure the image fits within the container without distortion */
             display: none; /* Initially hide all images */
         }
@@ -34,42 +44,143 @@
         #slideshow-container img.active {
             display: block; /* Show the active image */
         }
+
+        #rectangle-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .rectangle {
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 5px; /* Make them slightly rounded */
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .rectangle.active {
+            width: 20px; /* Increase width for active rectangle */
+            background-color: black;
+        }
+
+        .below-slideshow {
+            width: 80%; /* Example width for content below */
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+    <div id="header-container">
+        </div>
+
     <div id="slideshow-container">
         </div>
+
+    <div id="rectangle-container">
+        </div>
+
+    <div id="footer-container">
+        </div>
+
+    <div class="below-slideshow">
+        <h2>Content Below Slideshow</h2>
+        <p>This is some example content that will appear below the slideshow. The slideshow's height should adjust after the initial load to accommodate this content.</p>
+        <p>More content can be added here, and the page will scroll normally.</p>
+    </div>
 
     <script src="image_list.js"></script>
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
+        const rectangleContainer = document.getElementById('rectangle-container');
         let imagesElements = [];
+        let rectangles = [];
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
 
-        // Assuming image_list.js defines an array named 'imageFilenames'
+        // Function to load content from a file into a container
+        async function loadContent(url, containerId) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to load ${url}: ${response.status}`);
+                }
+                const html = await response.text();
+                document.getElementById(containerId).innerHTML = html;
+            } catch (error) {
+                console.error(error);
+                document.getElementById(containerId).textContent = `Error loading ${url}.`;
+            }
+        }
+
+        // Load header and footer
+        loadContent('Header.html', 'header-container');
+        loadContent('Footer.html', 'footer-container');
+
+        // Set initial height of slideshow container to screen height
+        document.addEventListener('DOMContentLoaded', function() {
+            slideshowContainer.style.height = window.innerHeight + 'px';
+        });
+
+        // Slideshow logic
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            imageFilenames.forEach(filename => {
+            imageFilenames.forEach((filename, index) => {
                 const img = document.createElement('img');
                 img.src = filename;
                 slideshowContainer.appendChild(img);
                 imagesElements.push(img);
+
+                // Create progression rectangles
+                const rectangle = document.createElement('div');
+                rectangle.classList.add('rectangle');
+                rectangle.dataset.index = index; // Store the index
+                rectangle.addEventListener('click', () => {
+                    currentIndex = index;
+                    showImage(currentIndex);
+                    updateRectangles();
+                });
+                rectangleContainer.appendChild(rectangle);
+                rectangles.push(rectangle);
             });
 
             // Function to show an image at a specific index
             function showImage(index) {
                 imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
                 imagesElements[index].classList.add('active'); // Show the image at the current index
+
+                // After showing the first image, remove the fixed screen height
+                if (index === 0) {
+                    setTimeout(() => {
+                        slideshowContainer.style.height = 'auto';
+                        slideshowContainer.style.maxHeight = 'none';
+                    }, 100);
+                }
             }
 
-            // Show the first image initially
+            // Function to update the active state of the rectangles
+            function updateRectangles() {
+                rectangles.forEach((rect, index) => {
+                    rect.classList.remove('active');
+                    if (index === currentIndex) {
+                        rect.classList.add('active');
+                    }
+                });
+            }
+
+            // Show the first image and update rectangles initially
             if (imagesElements.length > 0) {
                 showImage(currentIndex);
+                updateRectangles();
 
                 // Set up the interval to change images
                 setInterval(() => {
                     currentIndex = (currentIndex + 1) % imagesElements.length; // Move to the next image, loop if at the end
                     showImage(currentIndex);
+                    updateRectangles();
                 }, intervalTime);
             } else {
                 slideshowContainer.textContent = "No images found in the list.";
