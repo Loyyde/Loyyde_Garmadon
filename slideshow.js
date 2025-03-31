@@ -11,28 +11,33 @@ function showImage(index, direction = 'next') {
 
     if (!nextSlide) return;
 
-    imagesElements.forEach((img, i) => {
-        img.classList.remove('slide-active', 'slide-prev', 'slide-next');
-        img.style.transition = 'transform 0.5s ease-in-out';
-        img.style.zIndex = 1;
-        img.style.transform = i < currentIndex ? 'translateX(-100%)' : i > currentIndex ? 'translateX(100%)' : '';
-        if (i < currentIndex) img.classList.add('slide-prev');
-        if (i > currentIndex) img.classList.add('slide-next');
-    });
+    // Reset z-index for all slides
+    imagesElements.forEach(img => img.style.zIndex = 1);
+
+    nextSlide.classList.remove('slide-prev', 'slide-next');
+    outgoingSlide?.classList.remove('slide-active'); // Remove active from outgoing
 
     const isLastToFirst = outgoingIndex === imagesElements.length - 1 && nextIndex === 0;
     const isFirstToLast = outgoingIndex === 0 && nextIndex === imagesElements.length - 1;
 
-    nextSlide.classList.remove('slide-prev', 'slide-next');
-    nextSlide.style.zIndex = 2;
-    nextSlide.style.transform = isLastToFirst ? 'translateX(100%)' : isFirstToLast ? 'translateX(-100%)' : (direction === 'next' || nextIndex > outgoingIndex) ? 'translateX(100%)' : 'translateX(-100%)';
-
-    setTimeout(() => {
+    if (isLastToFirst) {
+        // Last to First: Incoming from right, outgoing to left
+        nextSlide.style.transform = 'translateX(100%)';
         nextSlide.classList.add('slide-active');
-        nextSlide.style.transform = 'translateX(0)';
-    }, 10);
+        outgoingSlide?.classList.add('slide-prev');
+    } else if (isFirstToLast) {
+        // First to Last: Incoming from left, outgoing to right
+        nextSlide.style.transform = 'translateX(-100%)';
+        nextSlide.classList.add('slide-active');
+        outgoingSlide?.classList.add('slide-next');
+    } else {
+        // Normal navigation
+        nextSlide.style.transform = (direction === 'next' || nextIndex > outgoingIndex) ? 'translateX(100%)' : 'translateX(-100%)';
+        nextSlide.classList.add('slide-active');
+        outgoingSlide?.classList.add(direction === 'next' || nextIndex > outgoingIndex ? 'slide-prev' : 'slide-next');
+    }
 
-    if (outgoingSlide) outgoingSlide.style.zIndex = 1;
+    nextSlide.style.zIndex = 2; // Bring incoming slide to front
 
     updateRectangles();
 }
