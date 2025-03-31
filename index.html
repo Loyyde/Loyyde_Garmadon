@@ -64,7 +64,7 @@
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: -30px; /* Adjust this value to overlap with the slideshow */
+            margin-top: -60px; /* Adjust this value to move the dots higher */
             z-index: 2; /* Ensure dots are above the slideshow */
         }
 
@@ -85,7 +85,7 @@
         #filter-titles {
             display: flex;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 20px; /* Add some space between dots and titles */
             gap: 20px;
         }
 
@@ -114,16 +114,16 @@
     <div id="rectangle-container">
         </div>
 
+    <div id="filter-titles">
+        <div class="filter-title">All</div>
+        <div class="filter-title">Title 2</div>
+        <div class="filter-title">Title 3</div>
+        <div class="filter-title">Title 4</div>
+        <div class="filter-title">Title 5</div>
+    </div>
+
     <div id="footer-container">
         </div>
-
-    <div id="filter-titles">
-        <div class="filter-title" onclick="filterImages('All')">All</div>
-        <div class="filter-title" onclick="filterImages('Folder1')">Folder1</div>
-        <div class="filter-title" onclick="filterImages('Folder2')">Folder2</div>
-        <div class="filter-title" onclick="filterImages('Folder3')">Folder3</div>
-        <div class="filter-title" onclick="filterImages('Folder4')">Folder4</div>
-    </div>
 
     <script src="image_list.js"></script>
     <script>
