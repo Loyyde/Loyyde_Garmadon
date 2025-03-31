@@ -1,64 +1,121 @@
-function showImage(index, direction = 'next') {
-    if (index === currentIndex && imagesElements?.[index]?.classList.contains('slide-active')) return;
-    if (!imagesElements?.length) return;
+document.addEventListener('DOMContentLoaded', () => {
+    const slideshowContainer = document.getElementById('slideshow-container');
+    const imagesElements = slideshowContainer ? slideshowContainer.querySelectorAll('img') : [];
+    const rectangleContainer = document.getElementById('rectangle-container');
+    const rectangles = rectangleContainer ? rectangleContainer.querySelectorAll('.rectangle') : [];
+    let currentIndex = 0;
+    const intervalTime = 5000;
+    let slideshowInterval;
 
-    const nextIndex = index;
-    const outgoingIndex = currentIndex;
-    currentIndex = nextIndex;
-
-    const nextSlide = imagesElements[nextIndex];
-    const outgoingSlide = imagesElements[outgoingIndex];
-
-    if (!nextSlide) return;
-
-    // Reset z-index for all slides
-    imagesElements.forEach(img => img.style.zIndex = 1);
-
-    nextSlide.classList.remove('slide-prev', 'slide-next');
-    outgoingSlide?.classList.remove('slide-active'); // Remove active from outgoing
-
-    const isLastToFirst = outgoingIndex === imagesElements.length - 1 && nextIndex === 0;
-    const isFirstToLast = outgoingIndex === 0 && nextIndex === imagesElements.length - 1;
-
-    if (isLastToFirst) {
-        // Last to First: Incoming from right, outgoing to left
-        nextSlide.style.transform = 'translateX(100%)';
-        nextSlide.classList.add('slide-active');
-        outgoingSlide?.classList.add('slide-prev');
-    } else if (isFirstToLast) {
-        // First to Last: Incoming from left, outgoing to right
-        nextSlide.style.transform = 'translateX(-100%)';
-        nextSlide.classList.add('slide-active');
-        outgoingSlide?.classList.add('slide-next');
-    } else {
-        // Normal navigation
-        nextSlide.style.transform = (direction === 'next' || nextIndex > outgoingIndex) ? 'translateX(100%)' : 'translateX(-100%)';
-        nextSlide.classList.add('slide-active');
-        outgoingSlide?.classList.add(direction === 'next' || nextIndex > outgoingIndex ? 'slide-prev' : 'slide-next');
+    if (!slideshowContainer || imagesElements.length === 0) {
+        console.log("Slideshow container or images not found.");
+        return;
     }
 
-    nextSlide.style.zIndex = 2; // Bring incoming slide to front
+    function updateRectangles() {
+        rectangles.forEach((rect, index) => {
+            rect.classList.remove('active');
+            if (index === currentIndex) {
+                rect.classList.add('active');
+            }
+        });
+    }
 
-    updateRectangles();
-}
+    function showImage(index) {
+        if (index < 0 || index >= imagesElements.length || index === currentIndex) {
+            return;
+        }
 
-function updateRectangles() {
-    rectangles.forEach((rect, index) => rect.classList.toggle('active', index === currentIndex));
-}
+        stopSlideshow();
 
-function nextSlide() {
-    if (imagesElements.length) showImage((currentIndex + 1) % imagesElements.length, 'next');
-}
+        const prevIndex = currentIndex;
+        currentIndex = index;
 
-function prevSlide() {
-    if (imagesElements.length) showImage((currentIndex - 1 + imagesElements.length) % imagesElements.length, 'prev');
-}
+        imagesElements.forEach((img, i) => {
+            img.classList.remove('slide-active', 'slide-prev', 'slide-next');
+            if (i === currentIndex) {
+                img.classList.add('slide-active');
+                img.style.transform = 'translateX(0%)';
+            } else if (i === prevIndex) {
+                img.classList.add('slide-prev');
+                img.style.transform = 'translateX(-100%)';
+            } else if (i > currentIndex) {
+                img.classList.add('slide-next');
+                img.style.transform = 'translateX(100%)';
+            } else {
+                img.classList.add('slide-prev');
+                img.style.transform = 'translateX(-100%)';
+            }
+        });
 
-function startSlideshow() {
-    clearInterval(slideshowInterval);
-    if (imagesElements.length > 1) slideshowInterval = setInterval(nextSlide, intervalTime);
-}
+        updateRectangles();
+        startSlideshow();
+    }
 
-function stopSlideshow() {
-    clearInterval(slideshowInterval);
-}
+    function nextSlide() {
+        const prevIndex = currentIndex;
+        currentIndex = (currentIndex + 1) % imagesElements.length;
+
+        imagesElements.forEach((img, i) => {
+            img.classList.remove('slide-active', 'slide-prev', 'slide-next');
+            if (i === currentIndex) {
+                img.classList.add('slide-active');
+                img.style.transform = 'translateX(0%)';
+            } else if (i === prevIndex) {
+                img.classList.add('slide-prev');
+                img.style.transform = 'translateX(-100%)';
+            } else if (i === (currentIndex + 1) % imagesElements.length) {
+                img.classList.add('slide-next');
+                img.style.transform = 'translateX(100%)';
+            } else {
+                img.classList.add('slide-next');
+                img.style.transform = 'translateX(100%)';
+            }
+        });
+
+        updateRectangles();
+    }
+
+    function prevSlide() {
+        const prevIndex = currentIndex;
+        currentIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
+
+        imagesElements.forEach((img, i) => {
+            img.classList.remove('slide-active', 'slide-prev', 'slide-next');
+            if (i === currentIndex) {
+                img.classList.add('slide-active');
+                img.style.transform = 'translateX(0%)';
+            } else if (i === prevIndex) {
+                img.classList.add('slide-next');
+                img.style.transform = 'translateX(100%)';
+            } else if (i === (currentIndex - 1 + imagesElements.length) % imagesElements.length) {
+                img.classList.add('slide-prev');
+                img.style.transform = 'translateX(-100%)';
+            } else {
+                img.classList.add('slide-prev');
+                img.style.transform = 'translateX(-100%)';
+            }
+        });
+
+        updateRectangles();
+    }
+
+    function startSlideshow() {
+        if (!slideshowInterval) {
+            slideshowInterval = setInterval(nextSlide, intervalTime);
+        }
+    }
+
+    function stopSlideshow() {
+        clearInterval(slideshowInterval);
+        slideshowInterval = null;
+    }
+
+    // Initialize slideshow
+    if (imagesElements.length > 0) {
+        if (rectangles.length > 0) {
+            updateRectangles();
+        }
+        startSlideshow();
+    }
+});
