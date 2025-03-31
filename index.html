@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gay Zone</title>
+    <title>Simple Slideshow</title>
     <style>
         body {
             background-color: #f2f2f2;
@@ -20,7 +20,11 @@
             text-align: center; /* Center content within header */
             padding: 10px 0; /* Add some padding */
             background-color: #ddd; /* Example background color */
-            z-index: 100; /* Ensure it's above other content */
+            z-index: 101; /* Ensure it's above the slideshow */
+            position: absolute; /* Allow overlapping */
+            top: 0;
+            left: 0;
+            right: 0;
         }
 
         #footer-container {
@@ -41,6 +45,8 @@
             max-height: 100vh; /* Initially set max height to screen height */
             overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
             margin: 20px 0; /* Add some margin above and below the slideshow */
+            margin-top: -30px; /* Adjust this value to control the overlap */
+            z-index: 1; /* Ensure slideshow is below the header */
         }
 
         #slideshow-container img {
@@ -96,6 +102,7 @@
         let rectangles = [];
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
+        let slideshowInterval; // Variable to store the interval
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -121,6 +128,40 @@
             slideshowContainer.style.height = window.innerHeight + 'px';
         });
 
+        // Function to show an image at a specific index
+        function showImage(index) {
+            imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
+            imagesElements[index].classList.add('active'); // Show the image at the current index
+
+            // After showing the first image, remove the fixed screen height
+            if (index === 0) {
+                setTimeout(() => {
+                    slideshowContainer.style.height = 'auto';
+                    slideshowContainer.style.maxHeight = 'none';
+                }, 100);
+            }
+        }
+
+        // Function to update the active state of the rectangles
+        function updateRectangles() {
+            rectangles.forEach((rect, index) => {
+                rect.classList.remove('active');
+                if (index === currentIndex) {
+                    rect.classList.add('active');
+                }
+            });
+        }
+
+        // Function to start the slideshow interval
+        function startSlideshow() {
+            clearInterval(slideshowInterval); // Clear any existing interval
+            slideshowInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % imagesElements.length; // Move to the next image, loop if at the end
+                showImage(currentIndex);
+                updateRectangles();
+            }, intervalTime);
+        }
+
         // Slideshow logic
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
             imageFilenames.forEach((filename, index) => {
@@ -137,46 +178,17 @@
                     currentIndex = index;
                     showImage(currentIndex);
                     updateRectangles();
+                    startSlideshow(); // Reset the timer on click
                 });
                 rectangleContainer.appendChild(rectangle);
                 rectangles.push(rectangle);
             });
 
-            // Function to show an image at a specific index
-            function showImage(index) {
-                imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
-                imagesElements[index].classList.add('active'); // Show the image at the current index
-
-                // After showing the first image, remove the fixed screen height
-                if (index === 0) {
-                    setTimeout(() => {
-                        slideshowContainer.style.height = 'auto';
-                        slideshowContainer.style.maxHeight = 'none';
-                    }, 100);
-                }
-            }
-
-            // Function to update the active state of the rectangles
-            function updateRectangles() {
-                rectangles.forEach((rect, index) => {
-                    rect.classList.remove('active');
-                    if (index === currentIndex) {
-                        rect.classList.add('active');
-                    }
-                });
-            }
-
             // Show the first image and update rectangles initially
             if (imagesElements.length > 0) {
                 showImage(currentIndex);
                 updateRectangles();
-
-                // Set up the interval to change images
-                setInterval(() => {
-                    currentIndex = (currentIndex + 1) % imagesElements.length; // Move to the next image, loop if at the end
-                    showImage(currentIndex);
-                    updateRectangles();
-                }, intervalTime);
+                startSlideshow(); // Start the slideshow on page load
             } else {
                 slideshowContainer.textContent = "No images found in the list.";
             }
