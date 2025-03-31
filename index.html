@@ -85,7 +85,7 @@
         #filter-titles {
             display: flex;
             justify-content: center;
-            margin-top: 20px; /* Add some space between dots and titles */
+            margin-top: 30px; /* Add space below the dots */
             gap: 20px;
         }
 
@@ -102,6 +102,23 @@
         .filter-title:hover {
             background-color: #ccc;
         }
+
+        #showcase-images {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Center the rows */
+            margin-top: 20px;
+            gap: 10px; /* Spacing between images */
+            width: 95%; /* Adjust width as needed */
+        }
+
+        #showcase-images img {
+            width: calc(20% - 10px); /* Roughly 1/5th width with spacing */
+            height: auto;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px; /* Spacing between rows */
+        }
     </style>
 </head>
 <body>
@@ -115,26 +132,31 @@
         </div>
 
     <div id="filter-titles">
-        <div class="filter-title">All</div>
-        <div class="filter-title">Kendrick</div>
-        <div class="filter-title">Title 3</div>
-        <div class="filter-title">Title 4</div>
-        <div class="filter-title">Title 5</div>
+        <div class="filter-title" onclick="loadShowcase('Kendrick')">Kendrick</div>
+        <div class="filter-title" onclick="loadShowcase('Drake')">Drake</div>
+        <div class="filter-title" onclick="loadShowcase('Eminem')">Eminem</div>
+        <div class="filter-title" onclick="loadShowcase('Jay-Z')">Jay-Z</div>
+        <div class="filter-title" onclick="loadShowcase('Nas')">Nas</div>
     </div>
+
+    <div id="showcase-images">
+        </div>
 
     <div id="footer-container">
         </div>
 
     <script src="image_list.js"></script>
+    <script src="slide_list.js"></script>
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
         const rectangleContainer = document.getElementById('rectangle-container');
+        const showcaseImagesContainer = document.getElementById('showcase-images');
         let imagesElements = [];
         let rectangles = [];
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
-        let allImageFilenames = []; // Store the initial list of all images
+        let allShowcaseFilenames = []; // Store the initial list of all showcase images
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -160,7 +182,7 @@
             slideshowContainer.style.height = window.innerHeight + 'px';
         });
 
-        // Function to show an image at a specific index
+        // Function to show an image at a specific index in the slideshow
         function showImage(index) {
             imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
             imagesElements[index].classList.add('active'); // Show the image at the current index
@@ -174,7 +196,7 @@
             }
         }
 
-        // Function to update the active state of the rectangles
+        // Function to update the active state of the rectangles for the slideshow
         function updateRectangles() {
             rectangles.forEach((rect, index) => {
                 rect.classList.remove('active');
@@ -194,7 +216,7 @@
             }, intervalTime);
         }
 
-        // Function to load slides based on a list of filenames
+        // Function to load slides into the slideshow
         function loadSlides(filenames) {
             slideshowContainer.innerHTML = '';
             rectangleContainer.innerHTML = '';
@@ -226,28 +248,55 @@
                 updateRectangles();
                 startSlideshow();
             } else {
-                slideshowContainer.textContent = "No images found for this filter.";
+                slideshowContainer.textContent = "No images found for the slideshow.";
             }
         }
 
-        // Function to filter images by folder
-        function filterImages(folderName) {
+        // Function to load showcase images into the grid
+        function loadShowcase(folderName) {
+            showcaseImagesContainer.innerHTML = '';
             let filteredFilenames = [];
+            const showcaseBasePath = 'Showcase/';
+            const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas']; // Updated folder names
+
             if (folderName === 'All') {
-                filteredFilenames = allImageFilenames;
+                let allImages = [];
+                showcaseFolders.forEach(folder => {
+                    const folderImages = allShowcaseFilenames.filter(filename => filename.startsWith(showcaseBasePath + folder + '/'));
+                    allImages = [...allImages, ...folderImages];
+                });
+                filteredFilenames = [...new Set(allImages)];
             } else {
-                filteredFilenames = allImageFilenames.filter(filename => filename.includes(`Showcase/${folderName}/`));
+                filteredFilenames = allShowcaseFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
             }
-            loadSlides(filteredFilenames);
+
+            filteredFilenames.forEach(filename => {
+                const img = document.createElement('img');
+                img.src = filename;
+                showcaseImagesContainer.appendChild(img);
+            });
+
+            if (filteredFilenames.length === 0) {
+                showcaseImagesContainer.textContent = "No images found for this category.";
+            }
         }
 
-        // Slideshow logic
+        // Slideshow logic (load images from slide_list.js)
+        if (typeof slideImageFilenames !== 'undefined' && Array.isArray(slideImageFilenames)) {
+            const slideFilenames = [...slideImageFilenames];
+            loadSlides(slideFilenames);
+        } else {
+            console.error("Error: 'slideImageFilenames' array not found or is not an array in slide_list.js");
+            slideshowContainer.textContent = "Error: Slide image list not found.";
+        }
+
+        // Initially load all showcase images
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            allImageFilenames = [...imageFilenames]; // Store the initial list
-            loadSlides(allImageFilenames); // Load all images initially
+            allShowcaseFilenames = [...imageFilenames]; // Store the initial list of showcase images
+            loadShowcase('All');
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
-            slideshowContainer.textContent = "Error: Image list not found.";
+            showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
         }
     </script>
 </body>
