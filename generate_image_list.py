@@ -12,7 +12,7 @@ if os.path.exists(slide_folder) and os.path.isdir(slide_folder):
 # Enclose each filename in single quotes
 quoted_image_files = [f"'{file}'" for file in image_files]
 
-javascript_array = f"const imageFilenames = [\n    {''},\n    '.join(quoted_image_files)}\n];"
+javascript_array = f"const imageFilenames = [\n    {', '.join(quoted_image_files)}\n];"
 
 output_filename = 'image_list.js'
 with open(output_filename, 'w') as f:
