@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gay Zone</title>
+    <title>Simple Slideshow</title>
     <style>
         body {
             background-color: #f2f2f2;
@@ -49,16 +49,37 @@
             z-index: 1; /* Ensure slideshow is below the header */
         }
 
-        #slideshow-container img {
+        .slide-container {
+            position: relative;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-height: 100vh;
+        }
+
+        .slide-container.active {
+            display: flex;
+        }
+
+        .slide-container img {
             width: 100%; /* Make image scale with container width */
             height: auto; /* Maintain aspect ratio */
             max-height: 100vh; /* Initially ensure image doesn't exceed screen height */
             object-fit: contain; /* Ensure the image fits within the container without distortion */
-            display: none; /* Initially hide all images */
         }
 
-        #slideshow-container img.active {
-            display: block; /* Show the active image */
+        .slide-caption {
+            position: absolute;
+            bottom: 10px; /* Adjust as needed to align with dots */
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            font-size: 0.9em;
+            border-radius: 3px;
+            z-index: 3;
         }
 
         #rectangle-container {
@@ -115,7 +136,8 @@
         .image-container {
             position: relative;
             overflow: hidden;
-            width: calc(20% - 10px); /* Roughly 1/5th width with spacing */
+            width: 200px; /* Fixed width for all showcase images */
+            height: 150px; /* Fixed height for all showcase images */
             margin-bottom: 10px; /* Spacing between rows */
             border-radius: 5px;
         }
@@ -123,8 +145,8 @@
         #showcase-images img {
             display: block; /* Ensure image takes the full width of the container */
             width: 100%;
-            height: auto;
-            object-fit: cover;
+            height: 100%;
+            object-fit: cover; /* Cover the container, may crop */
             border-radius: 5px;
         }
 
@@ -209,16 +231,9 @@
 
         // Function to show an image at a specific index in the slideshow
         function showImage(index) {
-            imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
-            imagesElements[index].classList.add('active'); // Show the image at the current index
-
-            // After showing the first image, remove the fixed screen height
-            if (index === 0) {
-                setTimeout(() => {
-                    slideshowContainer.style.height = 'auto';
-                    slideshowContainer.style.maxHeight = 'none';
-                }, 100);
-            }
+            const slides = slideshowContainer.querySelectorAll('.slide-container');
+            slides.forEach(slide => slide.classList.remove('active')); // Hide all slides
+            slides[index].classList.add('active'); // Show the slide at the current index
         }
 
         // Function to update the active state of the rectangles for the slideshow
@@ -250,9 +265,21 @@
             currentIndex = 0;
 
             filenames.forEach((filename, index) => {
+                const slideContainer = document.createElement('div');
+                slideContainer.classList.add('slide-container');
+
                 const img = document.createElement('img');
                 img.src = filename;
-                slideshowContainer.appendChild(img);
+
+                const caption = document.createElement('div');
+                caption.classList.add('slide-caption');
+                const parts = filename.split('/');
+                const imageName = parts[parts.length - 1];
+                caption.textContent = imageName;
+
+                slideContainer.appendChild(img);
+                slideContainer.appendChild(caption);
+                slideshowContainer.appendChild(slideContainer);
                 imagesElements.push(img);
 
                 const rectangle = document.createElement('div');
