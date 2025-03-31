@@ -227,16 +227,23 @@
 
         const loadContent = async (url, containerId) => {
             try {
+                console.log(`Attempting to load content from: ${url}`); // Added log
                 const response = await fetch(url);
-                if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
-                document.getElementById(containerId).innerHTML = await response.text();
+                if (!response.ok) {
+                    console.error(`Failed to load ${url}: ${response.status} - ${response.statusText}`); // More detailed error log
+                    document.getElementById(containerId).textContent = `Error loading ${url}: ${response.status}`;
+                    return; // Exit the function if loading fails
+                }
+                const content = await response.text();
+                console.log(`Successfully loaded content from: ${url}`); // Added success log
+                document.getElementById(containerId).innerHTML = content;
                 if (containerId === 'header-container') {
                     const headerScript = document.getElementById(containerId).querySelector('script');
                     headerScript?.parentNode.insertBefore(headerScript, document.body);
                 }
             } catch (error) {
-                console.error(error);
-                document.getElementById(containerId).textContent = `Error loading ${url}.`;
+                console.error(`Error during fetch for ${url}:`, error); // More detailed error log
+                document.getElementById(containerId).textContent = `Error loading ${url}. Check the console for details.`;
             }
         };
 
