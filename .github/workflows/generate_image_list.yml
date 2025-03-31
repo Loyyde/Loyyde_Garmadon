@@ -1,0 +1,31 @@
+name: Generate Image List
+
+on: [push] # This workflow will run every time you push code to the repository
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x' # Specify your desired Python version
+
+    - name: Install dependencies (if any)
+      run: |
+        python -m pip install --upgrade pip
+        # Add any other dependencies your script might need here
+        # pip install some_package
+
+    - name: Generate image list
+      run: python generate_image_list.py
+
+    - name: Commit and push changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "Update image list"
+        file_pattern: image_list.js
