@@ -66,7 +66,7 @@
             opacity: 1; /* Ensure always visible */
             transform: translateX(100%); /* Default starting position (off-screen right) */
             /* --- Transition applied to all slides --- */
-            transition: transform 0.8s ease-in-out; /* Smooth transition ONLY for transform */
+            transition: transform 0.5s ease-in-out; /* Smooth transition ONLY for transform */
             display: block; /* Ensure images are block-level */
             z-index: 1; /* Default stack order */
         }
@@ -289,26 +289,27 @@
 
             imagesElements.forEach((img, i) => {
                 img.classList.remove('slide-active', 'slide-next', 'slide-next-position', 'slide-prev-position');
-                if (i !== outgoingIndex && i !== nextIndex) {
+                if (i !== nextIndex) {
                     img.style.transition = 'none';
                     img.classList.add('slide-next-position');
                     setTimeout(() => {
-                        img.style.transition = 'transform 0.8s ease-in-out';
+                        img.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is set
                     }, 50);
                 }
             });
 
-            nextSlide.classList.add(direction === 'next' ? 'slide-next-position' : 'slide-prev-position');
-            outgoingSlide.classList.add(direction === 'next' ? 'slide-prev' : 'slide-next');
+            nextSlide.classList.remove('slide-prev', 'slide-next', 'slide-next-position', 'slide-prev-position');
+            nextSlide.classList.add('slide-active');
+            nextSlide.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is set
 
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    nextSlide.classList.remove('slide-next-position', 'slide-prev-position');
-                    nextSlide.classList.add('slide-active');
-                    // The outgoing slide will retain its 'slide-prev' or 'slide-next' class
-                    // until the next call to showImage.
-                });
-            });
+            if (outgoingIndex !== -1 && outgoingIndex !== nextIndex) {
+                outgoingSlide.classList.remove('slide-active', 'slide-next-position', 'slide-prev-position');
+                outgoingSlide.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is set
+                outgoingSlide.classList.add(direction === 'next' ? 'slide-prev' : 'slide-next');
+            } else if (outgoingIndex === -1 && imagesElements.length > 0) {
+                // Initial load, set the first slide to active without animation
+                imagesElements[0].classList.add('slide-active');
+            }
 
             updateRectangles();
         };
@@ -383,18 +384,22 @@
                     if (clickedIndex === currentIndex) return; // Don't do anything if clicking the current dot
 
                     // Determine direction based on clicked index vs current index
-                    const direction = clickedIndex > currentIndex ? 'next' : 'prev';
-                    // Handle wrap-around case for direction
-                    if (currentIndex === imagesElements.length - 1 && clickedIndex === 0) {
-                        // Wrapped forward
-                        showImage(clickedIndex, 'next');
-                    } else if (currentIndex === 0 && clickedIndex === imagesElements.length - 1) {
-                        // Wrapped backward
-                        showImage(clickedIndex, 'prev');
-                    } else {
-                        // Standard direction calculation
-                        showImage(clickedIndex, direction);
+                    let direction = 'next';
+                    if (clickedIndex < currentIndex) {
+                        direction = 'prev';
                     }
+                    // Handle wrap-around for direction (shortest path)
+                    const diff = clickedIndex - currentIndex;
+                    const numSlides = imagesElements.length;
+                    if (numSlides > 0) {
+                        if (diff > 0 && diff > numSlides / 2) {
+                            direction = 'prev';
+                        } else if (diff < 0 && Math.abs(diff) > numSlides / 2) {
+                            direction = 'next';
+                        }
+                    }
+
+                    showImage(clickedIndex, direction);
                     // Optional: Restart slideshow after manual click
                     // startSlideshow();
                 });
@@ -409,7 +414,7 @@
                 imagesElements[0].classList.add('slide-active'); // Set initial active slide
                 // Restore transition after a tick
                 setTimeout(() => {
-                    imagesElements[0].style.transition = 'transform 0.8s ease-in-out';
+                    imagesElements[0].style.transition = 'transform 0.5s ease-in-out';
                 }, 50);
 
                 updateRectangles(); // Update dots for the first slide
