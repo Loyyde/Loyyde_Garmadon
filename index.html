@@ -37,53 +37,34 @@
         }
 
         #slideshow-container {
-            position: relative; /* Needed for clipping */
-            width: 100%; /* Always match the width */
-            height: 100vh; /* Always match the screen height */
-            overflow: hidden; /* Hide slides that are off-screen */
-            margin: 0; /* Remove default margins */
-            z-index: 1;
             display: flex;
-            justify-content: center; /* Center the slides horizontally */
+            flex-direction: column; /* Change to column for vertical layout */
+            align-items: center; /* Center images horizontally */
+            justify-content: center; /* Center image vertically within the container */
+            width: 100%; /* Make slideshow container take full width */
+            max-height: 100vh; /* Initially set max height to screen height */
+            overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
+            margin: 20px 0; /* Add some margin above and below the slideshow */
+            margin-top: -30px; /* Adjust this value to control the header overlap */
+            z-index: 1; /* Ensure slideshow is below the header */
         }
 
-        #slides-strip {
-            display: flex; /* Arrange slides horizontally */
-            transition: transform 0.5s ease-in-out; /* Smooth scrolling */
+        #slideshow-container img {
+            width: 100%; /* Make image scale with container width */
+            height: auto; /* Maintain aspect ratio */
+            max-height: 100vh; /* Initially ensure image doesn't exceed screen height */
+            object-fit: contain; /* Ensure the image fits within the container without distortion */
+            display: none; /* Initially hide all images */
         }
 
-        .slide-container {
-            flex: 0 0 100%; /* Each slide takes full width */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 1; /* Always visible within the strip */
-        }
-
-        .slide-container img {
-            width: auto; /* Adjust width based on aspect ratio */
-            max-width: 100%; /* Ensure it doesn't exceed container width */
-            height: auto; /* Adjust height based on aspect ratio */
-            max-height: 100vh; /* Ensure it doesn't exceed screen height */
-            object-fit: contain; /* Fit the image within the bounds */
-        }
-
-        .slide-caption {
-            position: absolute;
-            bottom: 30px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px;
-            font-size: 0.9em;
-            z-index: 3;
+        #slideshow-container img.active {
+            display: block; /* Show the active image */
         }
 
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: 20px; /* Adjusted margin */
+            margin-top: -60px; /* Adjust this value to move the dots higher */
             z-index: 2; /* Ensure dots are above the slideshow */
         }
 
@@ -91,7 +72,7 @@
             width: 10px;
             height: 10px;
             background-color: white;
-            border-radius: 5px;
+            border-radius: 5px; /* Make them slightly rounded */
             margin: 0 5px;
             cursor: pointer;
         }
@@ -104,7 +85,7 @@
         #filter-titles {
             display: flex;
             justify-content: center;
-            margin-top: 40px; /* Adjusted margin */
+            margin-top: 60px; /* Increased margin to add space */
             gap: 20px;
         }
 
@@ -113,6 +94,7 @@
             font-weight: bold;
             cursor: pointer;
             padding: 5px 10px;
+            border-radius: 5px;
             background-color: #ddd;
             color: #333;
         }
@@ -133,16 +115,17 @@
         .image-container {
             position: relative;
             overflow: hidden;
-            width: 250px; /* Fixed width for all showcase images */
-            height: 200px; /* Fixed height for all showcase images */
+            width: calc(20% - 10px); /* Roughly 1/5th width with spacing */
             margin-bottom: 10px; /* Spacing between rows */
+            border-radius: 5px;
         }
 
         #showcase-images img {
             display: block; /* Ensure image takes the full width of the container */
             width: 100%;
-            height: 100%;
-            object-fit: cover; /* Cover the container, may crop */
+            height: auto;
+            object-fit: cover;
+            border-radius: 5px;
         }
 
         .overlay {
@@ -168,8 +151,6 @@
         </div>
 
     <div id="slideshow-container">
-        <div id="slides-strip">
-            </div>
         </div>
 
     <div id="rectangle-container">
@@ -193,7 +174,6 @@
     <script src="image_list.js"></script>
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
-        const slidesStrip = document.getElementById('slides-strip');
         const rectangleContainer = document.getElementById('rectangle-container');
         const showcaseImagesContainer = document.getElementById('showcase-images');
         let imagesElements = [];
@@ -201,6 +181,7 @@
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
+        let allShowcaseFilenames = []; // Store the initial list of all showcase images
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -223,13 +204,21 @@
 
         // Set initial height of slideshow container to screen height
         document.addEventListener('DOMContentLoaded', function() {
-            slideshowContainer.style.height = '100vh';
+            slideshowContainer.style.height = window.innerHeight + 'px';
         });
 
+        // Function to show an image at a specific index in the slideshow
         function showImage(index) {
-            currentIndex = index;
-            const translateXValue = -currentIndex * 100 + '%';
-            slidesStrip.style.transform = `translateX(${translateXValue})`;
+            imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
+            imagesElements[index].classList.add('active'); // Show the image at the current index
+
+            // After showing the first image, remove the fixed screen height
+            if (index === 0) {
+                setTimeout(() => {
+                    slideshowContainer.style.height = 'auto';
+                    slideshowContainer.style.maxHeight = 'none';
+                }, 100);
+            }
         }
 
         // Function to update the active state of the rectangles for the slideshow
@@ -242,69 +231,38 @@
             });
         }
 
-        function nextSlide() {
-            let nextIndex = (currentIndex + 1) % imagesElements.length;
-            showImage(nextIndex);
-            updateRectangles();
-            startSlideshow();
-        }
-
-        function previousSlide() {
-            let prevIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
-            showImage(prevIndex);
-            updateRectangles();
-            startSlideshow();
-        }
-
-        // Function to handle rectangle clicks
-        function handleRectangleClick(index) {
-            showImage(index);
-            updateRectangles();
-            startSlideshow(); // Restart interval
-        }
-
         // Function to start the slideshow interval
         function startSlideshow() {
-            clearInterval(slideshowInterval);
-            slideshowInterval = setInterval(nextSlide, intervalTime);
+            clearInterval(slideshowInterval); // Clear any existing interval
+            slideshowInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % imagesElements.length; // Move to the next image, loop if at the end
+                showImage(currentIndex);
+                updateRectangles();
+            }, intervalTime);
         }
 
         // Function to load slides into the slideshow
         function loadSlides(filenames) {
-            slidesStrip.innerHTML = '';
+            slideshowContainer.innerHTML = '';
             rectangleContainer.innerHTML = '';
             imagesElements = [];
             rectangles = [];
             currentIndex = 0;
 
-            // Preload images and create slide elements
             filenames.forEach((filename, index) => {
-                // Preload image
-                const imgPreloader = new Image();
-                imgPreloader.src = filename;
-
-                const slideContainer = document.createElement('div');
-                slideContainer.classList.add('slide-container');
-
                 const img = document.createElement('img');
                 img.src = filename;
-
-                const caption = document.createElement('div');
-                caption.classList.add('slide-caption');
-                const parts = filename.split('/');
-                const imageName = parts[parts.length - 1];
-                caption.textContent = imageName;
-
-                slideContainer.appendChild(img);
-                slideContainer.appendChild(caption);
-                slidesStrip.appendChild(slideContainer);
+                slideshowContainer.appendChild(img);
                 imagesElements.push(img);
 
                 const rectangle = document.createElement('div');
                 rectangle.classList.add('rectangle');
                 rectangle.dataset.index = index;
                 rectangle.addEventListener('click', () => {
-                    handleRectangleClick(index);
+                    currentIndex = index;
+                    showImage(currentIndex);
+                    updateRectangles();
+                    startSlideshow();
                 });
                 rectangleContainer.appendChild(rectangle);
                 rectangles.push(rectangle);
@@ -324,7 +282,7 @@
             showcaseImagesContainer.innerHTML = '';
             let filteredFilenames = [];
             const showcaseBasePath = 'Showcase/';
-            const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas'];
+            const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas']; // Updated folder names
 
             if (folderName === 'All') {
                 let allImages = [];
@@ -360,7 +318,7 @@
             }
         }
 
-        // Slideshow logic
+        // Slideshow logic (load images from imageFilenames.slideImageFilenames)
         if (typeof imageFilenames !== 'undefined' && typeof imageFilenames.slideImageFilenames !== 'undefined' && Array.isArray(imageFilenames.slideImageFilenames)) {
             const slideFilenames = [...imageFilenames.slideImageFilenames];
             loadSlides(slideFilenames);
@@ -371,8 +329,8 @@
 
         // Initially load all showcase images
         if (typeof imageFilenames !== 'undefined' && typeof imageFilenames.showcaseImageFilenames !== 'undefined' && Array.isArray(imageFilenames.showcaseImageFilenames)) {
-            const allShowcaseFilenames = [...imageFilenames.showcaseImageFilenames];
-            loadShowcase('All');
+            allShowcaseFilenames = [...imageFilenames.showcaseImageFilenames]; // Store the initial list of showcase images
+            loadShowcase('All'); // Call loadShowcase after populating allShowcaseFilenames
         } else {
             console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found or is not an array in image_list.js");
             showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
