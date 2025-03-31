@@ -12,8 +12,6 @@
             flex-direction: column; /* Arrange header, content, and footer vertically */
             align-items: center;
             min-height: 100vh;
-            padding-top: 60px; /* Add padding for the fixed header */
-            padding-bottom: 80px; /* Add padding for the fixed footer */
             position: relative; /* Needed for z-index on fixed elements if other positioned elements exist */
         }
 
@@ -22,10 +20,6 @@
             text-align: center; /* Center content within header */
             padding: 10px 0; /* Add some padding */
             background-color: #ddd; /* Example background color */
-            position: fixed; /* Fix the header to the top */
-            top: 0;
-            left: 0;
-            right: 0;
             z-index: 100; /* Ensure it's above other content */
         }
 
@@ -35,10 +29,6 @@
             padding: 20px 0; /* Add some padding */
             background-color: black; /* Example background color */
             color: white;
-            position: fixed; /* Fix the footer to the bottom */
-            bottom: 0;
-            left: 0;
-            right: 0;
             z-index: 100; /* Ensure it's above other content */
         }
 
@@ -108,10 +98,7 @@
         </div>
 
     <div class="below-slideshow">
-        <h2>Content Below Slideshow</h2>
-        <p>This is some example content that will appear below the slideshow. The slideshow's height should adjust after the initial load to accommodate this content.</p>
-        <p>More content can be added here, and the page will scroll normally.</p>
-    </div>
+        </div>
 
     <script src="image_list.js"></script>
     <script>
