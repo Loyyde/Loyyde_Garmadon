@@ -16,18 +16,23 @@
 
         #slideshow-container {
             display: flex;
-            flex-direction: row;
-            overflow-x: auto; /* Enable horizontal scrolling if images are too wide */
+            flex-direction: column; /* Change to column for vertical layout */
+            align-items: center; /* Center images horizontally */
+            justify-content: center; /* Center image vertically within the container */
+            width: 300px; /* Set a fixed width for the slideshow */
+            height: 200px; /* Set a fixed height for the slideshow */
+            overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
         }
 
         #slideshow-container img {
             max-width: 100%;
-            height: auto;
-            margin-right: 10px;
+            max-height: 100%;
+            object-fit: contain; /* Ensure the image fits within the container without distortion */
+            display: none; /* Initially hide all images */
         }
 
-        #slideshow-container img:last-child {
-            margin-right: 0;
+        #slideshow-container img.active {
+            display: block; /* Show the active image */
         }
     </style>
 </head>
@@ -38,6 +43,9 @@
     <script src="image_list.js"></script>
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
+        let imagesElements = [];
+        let currentIndex = 0;
+        const intervalTime = 5000; // Time in milliseconds (5 seconds)
 
         // Assuming image_list.js defines an array named 'imageFilenames'
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
@@ -45,7 +53,27 @@
                 const img = document.createElement('img');
                 img.src = filename;
                 slideshowContainer.appendChild(img);
+                imagesElements.push(img);
             });
+
+            // Function to show an image at a specific index
+            function showImage(index) {
+                imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
+                imagesElements[index].classList.add('active'); // Show the image at the current index
+            }
+
+            // Show the first image initially
+            if (imagesElements.length > 0) {
+                showImage(currentIndex);
+
+                // Set up the interval to change images
+                setInterval(() => {
+                    currentIndex = (currentIndex + 1) % imagesElements.length; // Move to the next image, loop if at the end
+                    showImage(currentIndex);
+                }, intervalTime);
+            } else {
+                slideshowContainer.textContent = "No images found in the list.";
+            }
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
             slideshowContainer.textContent = "Error: Image list not found.";
