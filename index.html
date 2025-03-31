@@ -12,14 +12,34 @@
             flex-direction: column; /* Arrange header, content, and footer vertically */
             align-items: center;
             min-height: 100vh;
+            padding-top: 60px; /* Add padding for the fixed header */
+            padding-bottom: 80px; /* Add padding for the fixed footer */
+            position: relative; /* Needed for z-index on fixed elements if other positioned elements exist */
         }
 
-        #header-container,
-        #footer-container {
-            width: 100%; /* Make header and footer span the full width */
-            text-align: center; /* Center content within header and footer */
+        #header-container {
+            width: 100%; /* Make header span the full width */
+            text-align: center; /* Center content within header */
             padding: 10px 0; /* Add some padding */
             background-color: #ddd; /* Example background color */
+            position: fixed; /* Fix the header to the top */
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100; /* Ensure it's above other content */
+        }
+
+        #footer-container {
+            width: 100%; /* Make footer span the full width */
+            text-align: center; /* Center content within footer */
+            padding: 20px 0; /* Add some padding */
+            background-color: black; /* Example background color */
+            color: white;
+            position: fixed; /* Fix the footer to the bottom */
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100; /* Ensure it's above other content */
         }
 
         #slideshow-container {
