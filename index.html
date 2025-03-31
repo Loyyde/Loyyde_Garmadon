@@ -61,11 +61,13 @@
             align-items: center;
             justify-content: center;
             opacity: 0; /* For a smoother transition */
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out; /* Smooth transition for transform and opacity */
         }
 
         .slide-container.active {
             display: flex;
             opacity: 1;
+            transform: translateX(0); /* Final position */
         }
 
         .slide-container img {
@@ -169,40 +171,40 @@
         }
 
         /* Animation classes for push effect */
-        .slide-in-right {
-            animation: slideInRight 0.5s ease-in-out forwards;
+        .slide-to-left {
+            animation: slideToLeft 0.5s ease-in-out forwards;
         }
 
-        .slide-in-left {
-            animation: slideInLeft 0.5s ease-in-out forwards;
+        .slide-from-right {
+            animation: slideFromRight 0.5s ease-in-out forwards;
         }
 
-        .slide-out-left {
-            animation: slideOutLeft 0.5s ease-in-out forwards;
+        .slide-to-right {
+            animation: slideToRight 0.5s ease-in-out forwards;
         }
 
-        .slide-out-right {
-            animation: slideOutRight 0.5s ease-in-out forwards;
+        .slide-from-left {
+            animation: slideFromLeft 0.5s ease-in-out forwards;
         }
 
-        @keyframes slideInRight {
+        @keyframes slideToLeft {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+        }
+
+        @keyframes slideFromRight {
             from { transform: translateX(100%); opacity: 1; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        @keyframes slideInLeft {
+        @keyframes slideToRight {
+            from { transform: translateX(0); }
+            to { transform: translateX(100%); }
+        }
+
+        @keyframes slideFromLeft {
             from { transform: translateX(-100%); opacity: 1; }
             to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOutLeft {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(-100%); opacity: 1; }
-        }
-
-        @keyframes slideOutRight {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 1; }
         }
     </style>
 </head>
@@ -273,27 +275,30 @@
 
             if (slides.length === 0) return;
 
-            const currentSlide = slides[currentIndex];
-            const previousSlide = slides[previousIndex];
+            const currentSlide = slides[previousIndex];
+            const nextSlide = slides[currentIndex];
 
             slides.forEach(slide => {
-                slide.classList.remove('active', 'slide-in-right', 'slide-in-left', 'slide-out-left', 'slide-out-right');
+                slide.classList.remove('active', 'slide-to-left', 'slide-from-right', 'slide-to-right', 'slide-from-left');
             });
 
-            if (currentSlide) {
-                currentSlide.classList.add('active');
+            if (nextSlide) {
+                nextSlide.classList.add('active');
                 if (currentIndex > previousIndex || (previousIndex === slides.length - 1 && currentIndex === 0)) {
                     // Next slide or last to first
-                    currentSlide.classList.add('slide-in-right');
-                    if (previousSlide) {
-                        previousSlide.classList.add('slide-out-left');
+                    if (currentSlide) {
+                        currentSlide.classList.add('slide-to-left');
                     }
+                    nextSlide.classList.add('slide-from-right');
                 } else if (currentIndex < previousIndex || (previousIndex === 0 && currentIndex === slides.length - 1)) {
                     // Previous slide or first to last
-                    currentSlide.classList.add('slide-in-left');
-                    if (previousSlide) {
-                        previousSlide.classList.add('slide-out-right');
+                    if (currentSlide) {
+                        currentSlide.classList.add('slide-to-right');
                     }
+                    nextSlide.classList.add('slide-from-left');
+                } else if (currentIndex === previousIndex && slides.length > 0) {
+                    // Handle initial load or same index (no animation)
+                    nextSlide.classList.add('active');
                 }
             }
         }
