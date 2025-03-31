@@ -13,6 +13,7 @@
             align-items: center;
             min-height: 100vh;
             position: relative;
+            overflow-x: hidden; /* Prevent horizontal scrollbars during animation */
         }
 
         #header-container {
@@ -34,47 +35,68 @@
             background-color: black;
             color: white;
             z-index: 100;
+            position: relative; /* Ensure it stacks correctly */
+        }
+
+        #slideshow-wrapper { /* Added wrapper for overflow control */
+            width: 100%;
+            max-height: 100vh;
+            overflow: hidden; /* Clip the sliding images */
+            position: relative; /* Needed for absolute positioning of images */
+            margin: 20px 0;
+            margin-top: -30px; /* Adjust as needed based on header */
+            z-index: 1;
+            /* Set an explicit height initially if needed, or calculate dynamically */
+             height: calc(100vh - 100px); /* Example: Adjust based on header/footer */
         }
 
         #slideshow-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: relative;
             width: 100%;
-            max-height: 100vh;
-            overflow-y: auto;
-            margin: 20px 0;
-            margin-top: -30px;
-            z-index: 1;
+            height: 100%; /* Fill the wrapper */
         }
 
         #slideshow-container img {
             width: 100%;
-            height: auto;
-            max-height: 100vh;
+            height: 100%;
             object-fit: contain;
-            display: none;
+            position: absolute; /* Position slides absolutely within container */
+            top: 0;
+            left: 100%; /* Start all slides off-screen to the right */
+            opacity: 0;
+            transition: left 0.8s ease-in-out, opacity 0.8s ease-in-out; /* Smooth transition */
+            display: block; /* Ensure images are block-level */
         }
 
         #slideshow-container img.active {
-            display: block;
+            left: 0; /* Active slide is centered */
+            opacity: 1;
+            z-index: 2; /* Bring active slide to the front */
         }
+
+        #slideshow-container img.previous {
+            left: -100%; /* Move previous slide off-screen to the left */
+            opacity: 0;
+            z-index: 1;
+        }
+
 
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: -60px;
+            margin-top: 10px; /* Adjusted margin */
+            position: relative; /* Ensure it's above footer */
             z-index: 2;
         }
 
         .rectangle {
             width: 10px;
             height: 10px;
-            background-color: white;
+            background-color: #ccc; /* Changed default color */
             border-radius: 5px;
             margin: 0 5px;
             cursor: pointer;
+            transition: width 0.3s ease, background-color 0.3s ease; /* Added transition */
         }
 
         .rectangle.active {
@@ -82,11 +104,14 @@
             background-color: black;
         }
 
+        /* Styles for filter titles and showcase remain the same */
         #filter-titles {
             display: flex;
             justify-content: center;
-            margin-top: 60px;
+            margin-top: 40px; /* Adjusted margin */
             gap: 20px;
+            position: relative;
+            z-index: 2;
         }
 
         .filter-title {
@@ -110,6 +135,8 @@
             margin-top: 20px;
             gap: 10px;
             width: 95%;
+            position: relative;
+            z-index: 1;
         }
 
         .image-container {
@@ -145,14 +172,18 @@
         }
 
         #load-more-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 1em;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+             display: block; /* Make button block level */
+             margin: 20px auto; /* Center the button */
+             padding: 10px 20px;
+             font-size: 1em;
+             cursor: pointer;
+             border: 1px solid #ccc;
+             border-radius: 5px;
+             background-color: #f9f9f9;
+             position: relative; /* Ensure it's above footer */
+             z-index: 2;
         }
+
 
         #load-more-button:hover {
             background-color: #eee;
@@ -161,7 +192,11 @@
 </head>
 <body>
     <div id="header-container"></div>
-    <div id="slideshow-container"></div>
+
+    <div id="slideshow-wrapper">
+        <div id="slideshow-container"></div>
+    </div>
+
     <div id="rectangle-container"></div>
     <div id="filter-titles">
         <div class="filter-title" onclick="loadShowcase('All')">All</div>
@@ -176,118 +211,183 @@
 
     <script src="image_list.js"></script>
     <script>
+        const slideshowWrapper = document.getElementById('slideshow-wrapper'); // Reference to the new wrapper
         const slideshowContainer = document.getElementById('slideshow-container');
         const rectangleContainer = document.getElementById('rectangle-container');
         const showcaseImagesContainer = document.getElementById('showcase-images');
         let imagesElements = [];
         let rectangles = [];
         let currentIndex = 0;
+        let previousIndex = -1; // Keep track of the previously active slide
         const intervalTime = 5000;
         let slideshowInterval;
         const preloadedImages = [];
-        const initialImageCount = 12;
+        const initialImageCount = 12; // Number of showcase images to load initially/per click
         let displayedImageCount = 0;
-        let allFilteredFilenames = [];
+        let allFilteredFilenames = []; // Holds currently filtered showcase filenames
 
+        // --- Content Loading ---
         const loadContent = async (url, containerId) => {
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
-                document.getElementById(containerId).innerHTML = await response.text();
+                const text = await response.text();
+                document.getElementById(containerId).innerHTML = text;
+                // Special handling for header script if it exists
+                if (containerId === 'header-container') {
+                    const headerScript = document.getElementById(containerId).querySelector('script');
+                    if (headerScript) {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = headerScript.textContent;
+                        document.body.appendChild(newScript); // Append to body to execute
+                    }
+                }
             } catch (error) {
                 console.error(error);
                 document.getElementById(containerId).textContent = `Error loading ${url}.`;
             }
         };
 
-        loadContent('Header.html', 'header-container');
-        loadContent('Footer.html', 'footer-container');
+        // --- Slideshow Logic ---
+        const showImage = (index, direction = 'next') => {
+            if (index === currentIndex && imagesElements[index]?.classList.contains('active')) return; // Avoid re-animating the same slide
 
-        document.addEventListener('DOMContentLoaded', () => {
-            slideshowContainer.style.height = `${window.innerHeight}px`;
-        });
+            previousIndex = currentIndex;
+            currentIndex = index;
 
-        const showImage = (index) => {
-            imagesElements.forEach(img => img.classList.remove('active'));
-            imagesElements[index].classList.add('active');
+            imagesElements.forEach((img, i) => {
+                img.classList.remove('active', 'previous');
+                // Position slides correctly for animation
+                if (i === currentIndex) {
+                    // Position the incoming slide based on direction
+                    img.style.left = direction === 'next' ? '100%' : '-100%';
+                    // Force reflow to ensure transition starts correctly
+                    void img.offsetWidth;
+                    img.classList.add('active');
+                } else if (i === previousIndex) {
+                     // Let the previously active slide animate out
+                     img.classList.add('previous');
+                } else {
+                    // Instantly move other slides off-screen without transition
+                    img.style.transition = 'none'; // Disable transition temporarily
+                    img.style.left = '100%';
+                    img.style.opacity = '0';
+                     // Restore transition after a tick
+                     setTimeout(() => {
+                         img.style.transition = 'left 0.8s ease-in-out, opacity 0.8s ease-in-out';
+                     }, 50);
+                }
+            });
+
+            updateRectangles();
         };
 
         const updateRectangles = () => {
             rectangles.forEach((rect, index) => {
-                rect.classList.remove('active');
-                if (index === currentIndex) rect.classList.add('active');
+                rect.classList.toggle('active', index === currentIndex);
             });
         };
 
+        const nextSlide = () => {
+            const nextIndex = (currentIndex + 1) % imagesElements.length;
+            showImage(nextIndex, 'next');
+        };
+
+         const prevSlide = () => { // Optional: Function to go back
+             const prevIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
+             showImage(prevIndex, 'prev');
+         };
+
         const startSlideshow = () => {
+            clearInterval(slideshowInterval); // Clear existing interval
+            slideshowInterval = setInterval(nextSlide, intervalTime);
+        };
+
+        const stopSlideshow = () => {
             clearInterval(slideshowInterval);
-            slideshowInterval = setInterval(() => {
-                currentIndex = (currentIndex + 1) % imagesElements.length;
-                showImage(currentIndex);
-                updateRectangles();
-            }, intervalTime);
         };
 
         const loadSlides = (filenames) => {
-            slideshowContainer.innerHTML = '';
-            rectangleContainer.innerHTML = '';
+            stopSlideshow(); // Stop slideshow while loading
+            slideshowContainer.innerHTML = ''; // Clear previous slides
+            rectangleContainer.innerHTML = ''; // Clear previous rectangles
             imagesElements = [];
             rectangles = [];
-            currentIndex = 0;
-            preloadedImages.length = 0; // Clear preloaded images
+            preloadedImages.length = 0; // Clear preloaded images array
 
+            // Preload images
             filenames.forEach(filename => {
                 const img = new Image();
                 img.src = filename;
                 preloadedImages.push(img);
             });
 
+            // Create image elements and rectangles
             filenames.forEach((filename, index) => {
                 const img = document.createElement('img');
                 img.src = filename;
+                img.alt = `Slide ${index + 1}`;
                 slideshowContainer.appendChild(img);
                 imagesElements.push(img);
 
                 const rectangle = document.createElement('div');
                 rectangle.className = 'rectangle';
-                rectangle.dataset.index = index;
+                rectangle.dataset.index = index; // Store index for click handling
                 rectangle.addEventListener('click', () => {
-                    currentIndex = index;
-                    showImage(currentIndex);
-                    updateRectangles();
-                    startSlideshow();
+                    stopSlideshow(); // Stop auto-play on manual navigation
+                    const clickedIndex = parseInt(rectangle.dataset.index, 10);
+                    // Determine direction based on clicked index vs current index
+                    const direction = clickedIndex > currentIndex ? 'next' : 'prev';
+                    showImage(clickedIndex, direction);
+                    // Optional: Restart slideshow after manual click (or leave it stopped)
+                    // startSlideshow();
                 });
                 rectangleContainer.appendChild(rectangle);
                 rectangles.push(rectangle);
             });
 
             if (imagesElements.length > 0) {
-                showImage(currentIndex);
+                // Set initial slide without animation delay
+                 currentIndex = 0;
+                 previousIndex = -1; // Reset previous index
+                 imagesElements[currentIndex].style.transition = 'none'; // No transition for first load
+                 imagesElements[currentIndex].classList.add('active');
+                 // Restore transition after a tick
+                 setTimeout(() => {
+                     imagesElements[currentIndex].style.transition = 'left 0.8s ease-in-out, opacity 0.8s ease-in-out';
+                 }, 50);
+
                 updateRectangles();
-                startSlideshow();
-                setTimeout(() => {
-                    slideshowContainer.style.height = 'auto';
-                    slideshowContainer.style.maxHeight = 'none';
-                }, 100);
+                startSlideshow(); // Start the automatic slideshow
+                // Adjust wrapper height after images might have loaded (better approach might be needed depending on image dimensions)
+                // slideshowWrapper.style.height = `${slideshowContainer.offsetHeight}px`;
             } else {
                 slideshowContainer.textContent = "No images found for the slideshow.";
+                 slideshowWrapper.style.height = '100px'; // Set a default height if no images
             }
         };
 
-        const createImageContainer = (filename) => {
+
+        // --- Showcase Logic ---
+         const createImageContainer = (filename) => {
             const container = document.createElement('div');
             container.className = 'image-container';
-            container.innerHTML = `<img src="${filename}" alt="${filename.split('/').pop()}"><div class="overlay">${filename.split('/').pop()}</div>`;
+            // Extract title, handle potential path issues
+             const parts = filename.split('/');
+             const title = parts.pop() || 'Image'; // Get filename, fallback to 'Image'
+             container.innerHTML = `<img src="${filename}" alt="${title}"><div class="overlay">${title}</div>`;
             return container;
         };
 
         const showNextSetOfImages = () => {
+            const loadMoreButton = document.getElementById('load-more-button');
+            loadMoreButton?.remove(); // Remove existing button first
+
             const nextImageCount = Math.min(allFilteredFilenames.length - displayedImageCount, initialImageCount);
             if (nextImageCount <= 0) {
-                const loadMoreButton = document.getElementById('load-more-button');
-                loadMoreButton?.remove();
-                return;
-            }
+                 // No more images to load for this filter
+                 return;
+             }
 
             const fragment = document.createDocumentFragment();
             const filenamesToShow = allFilteredFilenames.slice(displayedImageCount, displayedImageCount + nextImageCount);
@@ -295,47 +395,79 @@
             showcaseImagesContainer.appendChild(fragment);
             displayedImageCount += nextImageCount;
 
-            const loadMoreButton = document.getElementById('load-more-button');
-            if (displayedImageCount >= allFilteredFilenames.length && loadMoreButton) {
-                loadMoreButton.remove();
-            } else if (allFilteredFilenames.length > displayedImageCount && !loadMoreButton) {
+            // Add 'Load More' button only if there are more images left
+            if (displayedImageCount < allFilteredFilenames.length) {
                 const btn = document.createElement('button');
                 btn.id = 'load-more-button';
                 btn.textContent = 'Load More';
                 btn.addEventListener('click', showNextSetOfImages);
-                showcaseImagesContainer.appendChild(btn);
+                // Insert button after the showcase container, before the footer
+                 footerContainer.parentNode.insertBefore(btn, footerContainer);
             }
         };
 
+
         const loadShowcase = (folderName) => {
-            showcaseImagesContainer.innerHTML = '';
-            allFilteredFilenames = [];
+            showcaseImagesContainer.innerHTML = ''; // Clear current showcase images
+             document.getElementById('load-more-button')?.remove(); // Remove load more button
+
             const showcaseBasePath = 'Showcase/';
-            const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas'];
+            const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas']; // Example folders
 
-            allFilteredFilenames = folderName === 'All'
-                ? [...new Set(showcaseFolders.flatMap(folder =>
-                    imageFilenames.showcaseImageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folder + '/'))
-                ))]
-                : imageFilenames.showcaseImageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
+            if (!imageFilenames || !imageFilenames.showcaseImageFilenames) {
+                 console.error("Showcase image data is missing.");
+                 showcaseImagesContainer.textContent = "Error: Showcase images not found.";
+                 return;
+             }
 
-            displayedImageCount = 0;
-            showNextSetOfImages();
+            // Filter filenames based on the selected folder or 'All'
+            if (folderName === 'All') {
+                 // Combine filenames from all showcase subfolders, ensuring uniqueness
+                 allFilteredFilenames = [...new Set(
+                     showcaseFolders.flatMap(folder =>
+                         imageFilenames.showcaseImageFilenames.filter(filename =>
+                             filename.startsWith(showcaseBasePath + folder + '/')
+                         )
+                     )
+                 )];
+             } else {
+                 allFilteredFilenames = imageFilenames.showcaseImageFilenames.filter(filename =>
+                     filename.startsWith(showcaseBasePath + folderName + '/')
+                 );
+             }
+
+            displayedImageCount = 0; // Reset count for the new filter
+            showNextSetOfImages(); // Load the first batch
         };
 
-        if (typeof imageFilenames?.slideImageFilenames?.length) {
-            loadSlides(imageFilenames.slideImageFilenames);
-        } else {
-            console.error("Error: 'imageFilenames.slideImageFilenames' array not found or is not an array in image_list.js");
-            slideshowContainer.textContent = "Error: Slide image list not found.";
-        }
 
-        if (typeof imageFilenames?.showcaseImageFilenames?.length) {
-            loadShowcase('All');
-        } else {
-            console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found or is not an array in image_list.js");
-            showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
-        }
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load header and footer first
+            await loadContent('Header.html', 'header-container');
+            await loadContent('Footer.html', 'footer-container');
+
+             // Then initialize slideshow and showcase
+            if (typeof imageFilenames?.slideImageFilenames?.length === 'number' && imageFilenames.slideImageFilenames.length > 0) {
+                 loadSlides(imageFilenames.slideImageFilenames);
+             } else {
+                 console.error("Error: 'imageFilenames.slideImageFilenames' array not found or is empty in image_list.js");
+                 slideshowContainer.textContent = "Error: Slide image list not found.";
+                 slideshowWrapper.style.height = '100px'; // Set a default height
+             }
+
+            if (typeof imageFilenames?.showcaseImageFilenames?.length === 'number') {
+                 loadShowcase('All'); // Load initial showcase
+             } else {
+                 console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found in image_list.js");
+                 showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
+             }
+
+             // Optional: Add event listeners for slideshow pause/resume on hover
+             slideshowWrapper.addEventListener('mouseenter', stopSlideshow);
+             slideshowWrapper.addEventListener('mouseleave', startSlideshow);
+        });
+
     </script>
 </body>
 </html>
