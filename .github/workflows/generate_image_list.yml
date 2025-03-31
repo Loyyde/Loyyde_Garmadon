@@ -25,11 +25,8 @@ jobs:
         # Add any other dependencies your scripts might need here
         # pip install some_package
 
-    - name: Generate slide list
-      run: python generate_slides.py
-
-    - name: Generate showcase list
-      run: python generate_showcase.py
+    - name: Generate lists
+      run: python generate_lists.py
 
     - name: Commit and push changes
       uses: stefanzweifel/git-auto-commit-action@v4
