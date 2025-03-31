@@ -20,7 +20,7 @@
             text-align: center; /* Center content within header */
             padding: 10px 0; /* Add some padding */
             background-color: transparent; /* Make the header transparent */
-            z-index: 101; /* Ensure it's above the slideshow */
+            z-index: 101; /* Ensure it's above other content */
             position: absolute; /* Allow overlapping */
             top: 0;
             left: 0;
@@ -45,7 +45,7 @@
             max-height: 100vh; /* Initially set max height to screen height */
             overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
             margin: 20px 0; /* Add some margin above and below the slideshow */
-            margin-top: -30px; /* Adjust this value to control the header overlap */
+            /* Removed margin-top for header overlap */
             z-index: 1; /* Ensure slideshow is below the header */
         }
 
@@ -64,7 +64,7 @@
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: -30px; /* Adjust this value to overlap with the slideshow */
+            margin-top: 10px; /* Reset margin-top */
             z-index: 2; /* Ensure dots are above the slideshow */
         }
 
@@ -114,9 +114,6 @@
     <div id="rectangle-container">
         </div>
 
-    <div id="footer-container">
-        </div>
-
     <div id="filter-titles">
         <div class="filter-title" onclick="filterImages('All')">All</div>
         <div class="filter-title" onclick="filterImages('Folder1')">Folder1</div>
@@ -124,6 +121,9 @@
         <div class="filter-title" onclick="filterImages('Folder3')">Folder3</div>
         <div class="filter-title" onclick="filterImages('Folder4')">Folder4</div>
     </div>
+
+    <div id="footer-container">
+        </div>
 
     <script src="image_list.js"></script>
     <script>
@@ -134,7 +134,6 @@
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
-        let allImageFilenames = []; // Store the initial list of all images
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -233,18 +232,26 @@
         // Function to filter images by folder
         function filterImages(folderName) {
             let filteredFilenames = [];
+            const showcaseFolders = ['Folder1', 'Folder2', 'Folder3', 'Folder4']; // Add your actual folder names here
+
             if (folderName === 'All') {
-                filteredFilenames = allImageFilenames;
+                let allImages = [];
+                showcaseFolders.forEach(folder => {
+                    const folderImages = imageFilenames.filter(filename => filename.includes(`Showcase/${folder}/`));
+                    allImages = [...allImages, ...folderImages];
+                });
+                // Remove duplicates if any
+                filteredFilenames = [...new Set(allImages)];
             } else {
-                filteredFilenames = allImageFilenames.filter(filename => filename.includes(`Showcase/${folderName}/`));
+                filteredFilenames = imageFilenames.filter(filename => filename.includes(`Showcase/${folderName}/`));
             }
             loadSlides(filteredFilenames);
         }
 
         // Slideshow logic
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            allImageFilenames = [...imageFilenames]; // Store the initial list
-            loadSlides(allImageFilenames); // Load all images initially
+            // Load all images initially (optional, you could start with 'All' filter)
+            filterImages('All');
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
             slideshowContainer.textContent = "Error: Image list not found.";
