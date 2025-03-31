@@ -146,7 +146,6 @@
         </div>
 
     <script src="image_list.js"></script>
-    <script src="slide_list.js"></script>
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
         const rectangleContainer = document.getElementById('rectangle-container');
@@ -262,12 +261,12 @@
             if (folderName === 'All') {
                 let allImages = [];
                 showcaseFolders.forEach(folder => {
-                    const folderImages = allShowcaseFilenames.filter(filename => filename.startsWith(showcaseBasePath + folder + '/'));
+                    const folderImages = imageFilenames.showcaseImageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folder + '/'));
                     allImages = [...allImages, ...folderImages];
                 });
                 filteredFilenames = [...new Set(allImages)];
             } else {
-                filteredFilenames = allShowcaseFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
+                filteredFilenames = imageFilenames.showcaseImageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
             }
 
             filteredFilenames.forEach(filename => {
@@ -281,21 +280,21 @@
             }
         }
 
-        // Slideshow logic (load images from slide_list.js)
-        if (typeof slideImageFilenames !== 'undefined' && Array.isArray(slideImageFilenames)) {
-            const slideFilenames = [...slideImageFilenames];
+        // Slideshow logic (load images from imageFilenames.slideImageFilenames)
+        if (typeof imageFilenames !== 'undefined' && typeof imageFilenames.slideImageFilenames !== 'undefined' && Array.isArray(imageFilenames.slideImageFilenames)) {
+            const slideFilenames = [...imageFilenames.slideImageFilenames];
             loadSlides(slideFilenames);
         } else {
-            console.error("Error: 'slideImageFilenames' array not found or is not an array in slide_list.js");
+            console.error("Error: 'imageFilenames.slideImageFilenames' array not found or is not an array in image_list.js");
             slideshowContainer.textContent = "Error: Slide image list not found.";
         }
 
         // Initially load all showcase images
-        if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            allShowcaseFilenames = [...imageFilenames]; // Store the initial list of showcase images
+        if (typeof imageFilenames !== 'undefined' && typeof imageFilenames.showcaseImageFilenames !== 'undefined' && Array.isArray(imageFilenames.showcaseImageFilenames)) {
+            allShowcaseFilenames = [...imageFilenames.showcaseImageFilenames]; // Store the initial list of showcase images
             loadShowcase('All'); // Call loadShowcase after populating allShowcaseFilenames
         } else {
-            console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
+            console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found or is not an array in image_list.js");
             showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
         }
     </script>
