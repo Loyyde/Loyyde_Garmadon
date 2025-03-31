@@ -3,217 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Slideshow</title>
+    <title>Simple Slideshow</title>
     <style>
         body {
-            margin: 0;
             background-color: #f2f2f2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh; /* Ensure scrollbar if content overflows */
+            margin: 0; /* Reset default body margin */
+            display: flex; /* Enable flexbox for centering (optional, but good practice) */
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+            min-height: 100vh; /* Ensure the body takes up at least the full viewport height */
         }
 
-        .slideshow-container {
-            position: relative;
-            width: 80%; /* Adjust as needed */
-            max-width: 800px; /* Adjust as needed */
-            overflow: hidden;
-            margin: 20px 0; /* Add some top and bottom margin */
+        #slideshow-container {
+            display: flex; /* Arrange images horizontally */
+            flex-direction: row; /* Ensure images are in a row */
         }
 
-        .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: auto; /* Adjust if you have a fixed height in mind */
-            opacity: 0;
-            transition: opacity 1s ease-in-out, transform 0.5s ease-in-out;
-            transform: translateX(100%); /* Start off-screen to the right */
+        #slideshow-container img {
+            max-width: 100%; /* Ensure images don't exceed container width */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 10px; /* Add some spacing between images */
         }
 
-        .slide.active {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .slide.prev {
-            transform: translateX(-100%); /* Move off-screen to the left */
-        }
-
-        .slide img {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-
-        .slide-name {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: white;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-        }
-
-        .dots-container {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-        }
-
-        .dot {
-            width: 20px;
-            height: 10px;
-            background-color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
-        }
-
-        .dot.active {
-            width: 40px;
-            background-color: black;
+        /* Remove margin from the last image */
+        #slideshow-container img:last-child {
+            margin-right: 0;
         }
     </style>
 </head>
 <body>
-
-    <div class="slideshow-container">
-        <div id="slides">
-            </div>
-        <div id="slide-name" class="slide-name"></div>
-        <div id="dots-container" class="dots-container">
-            </div>
-    </div>
+    <div id="slideshow-container">
+        </div>
 
     <script src="image_list.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const slideshowContainer = document.querySelector('.slideshow-container');
-            const slidesContainer = document.getElementById('slides');
-            const slideNameDisplay = document.getElementById('slide-name');
-            const dotsContainer = document.getElementById('dots-container');
-            let slides = [];
-            let currentIndex = 0;
-            let intervalId;
+        const slideshowContainer = document.getElementById('slideshow-container');
 
-            function loadSlides() {
-                slidesContainer.innerHTML = '';
-                dotsContainer.innerHTML = '';
-                slides = imageFilenames.map((filename, index) => {
-                    const slide = document.createElement('div');
-                    slide.classList.add('slide');
-                    const img = document.createElement('img');
-                    img.src = 'Slide/' + filename;
-                    img.alt = filename;
-                    slide.appendChild(img);
-                    slidesContainer.appendChild(slide);
-
-                    const dot = document.createElement('div');
-                    dot.classList.add('dot');
-                    dot.addEventListener('click', () => goToSlide(index));
-                    dotsContainer.appendChild(dot);
-
-                    return slide;
-                });
-                updateDots();
-                showSlide(currentIndex);
-            }
-
-            function showSlide(index, direction = 'next') {
-                if (slides.length === 0) return;
-
-                const prevIndex = currentIndex;
-                currentIndex = (index + slides.length) % slides.length;
-
-                slides.forEach(slide => {
-                    slide.classList.remove('active', 'prev');
-                });
-
-                if (direction === 'next') {
-                    slides[currentIndex].classList.add('active');
-                    if (prevIndex !== currentIndex) {
-                        slides[prevIndex].classList.add('prev');
-                    }
-                } else if (direction === 'prev') {
-                    slides[currentIndex].classList.add('active');
-                    if (prevIndex !== currentIndex) {
-                        slides[prevIndex].classList.add('prev');
-                        // Adjust classes for reverse animation
-                        slides[currentIndex].style.transform = 'translateX(-100%)';
-                        setTimeout(() => {
-                            slides[currentIndex].style.transform = 'translateX(0)';
-                            slides[prevIndex].style.transform = 'translateX(100%)';
-                        }, 50);
-                    }
-                } else {
-                    slides[currentIndex].classList.add('active');
-                    if (prevIndex !== currentIndex) {
-                        slides[prevIndex].classList.add('prev');
-                        // Determine direction based on index difference for dot clicks
-                        if (index > prevIndex) {
-                            slides[currentIndex].style.transform = 'translateX(100%)';
-                            setTimeout(() => {
-                                slides[currentIndex].style.transform = 'translateX(0)';
-                                slides[prevIndex].style.transform = 'translateX(-100%)';
-                            }, 50);
-                        } else if (index < prevIndex) {
-                            slides[currentIndex].style.transform = 'translateX(-100%)';
-                            setTimeout(() => {
-                                slides[currentIndex].style.transform = 'translateX(0)';
-                                slides[prevIndex].style.transform = 'translateX(100%)';
-                            }, 50);
-                        }
-                    }
-                }
-
-
-                slideNameDisplay.textContent = imageFilenames[currentIndex];
-                updateDots();
-            }
-
-            function nextSlide() {
-                showSlide((currentIndex + 1) % slides.length, 'next');
-            }
-
-            function prevSlide() {
-                showSlide((currentIndex - 1 + slides.length) % slides.length, 'prev');
-            }
-
-            function goToSlide(index) {
-                if (index !== currentIndex) {
-                    showSlide(index, index > currentIndex ? 'next' : 'prev');
-                    clearInterval(intervalId); // Stop auto-play when manually navigating
-                    startAutoplay(); // Restart auto-play
-                }
-            }
-
-            function updateDots() {
-                const dots = document.querySelectorAll('.dot');
-                dots.forEach((dot, index) => {
-                    dot.classList.remove('active');
-                    if (index === currentIndex) {
-                        dot.classList.add('active');
-                    }
-                });
-            }
-
-            function startAutoplay() {
-                clearInterval(intervalId);
-                intervalId = setInterval(nextSlide, 5000);
-            }
-
-            loadSlides();
-            startAutoplay();
-        });
+        // Assuming image_list.js defines an array named 'images'
+        if (typeof images !== 'undefined' && Array.isArray(images)) {
+            images.forEach(imageUrl => {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                slideshowContainer.appendChild(img);
+            });
+        } else {
+            console.error("Error: 'images' array not found or is not an array in image_list.js");
+            slideshowContainer.textContent = "Error: Image list not found.";
+        }
     </script>
-
 </body>
 </html>
