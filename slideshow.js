@@ -97,6 +97,7 @@ const loadSlides = (filenames) => {
     if (imagesElements.length > 0) {
         imagesElements[0].classList.add('active');
         updateRectangles();
+        console.log("First image should be active."); // Added console log
         setTimeout(() => {
             startSlideshow();
         }, 100); // Slight delay to ensure first image is visible before auto-sliding
