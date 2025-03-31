@@ -97,6 +97,7 @@
             width: 10px;
             height: 10px;
             background-color: white;
+            border-radius: 5px;
             margin: 0 5px;
             cursor: pointer;
         }
@@ -167,7 +168,7 @@
             bottom: 0; /* Slide up on hover */
         }
 
-        /* Animation classes */
+        /* Animation classes for push effect */
         .slide-in-right {
             animation: slideInRight 0.5s ease-in-out forwards;
         }
@@ -185,23 +186,23 @@
         }
 
         @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
+            from { transform: translateX(100%); opacity: 1; }
             to { transform: translateX(0); opacity: 1; }
         }
 
         @keyframes slideInLeft {
-            from { transform: translateX(-100%); opacity: 0; }
+            from { transform: translateX(-100%); opacity: 1; }
             to { transform: translateX(0); opacity: 1; }
         }
 
         @keyframes slideOutLeft {
             from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(-100%); opacity: 1; }
         }
 
         @keyframes slideOutRight {
             from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(100%); opacity: 1; }
         }
     </style>
 </head>
@@ -270,29 +271,29 @@
             const previousIndex = currentIndex;
             currentIndex = index;
 
-            slides.forEach(slide => {
-                slide.classList.remove('active', 'slide-in-right', 'slide-in-left', 'slide-out-left', 'slide-out-right');
-            });
+            if (slides.length === 0) return;
 
             const currentSlide = slides[currentIndex];
             const previousSlide = slides[previousIndex];
 
+            slides.forEach(slide => {
+                slide.classList.remove('active', 'slide-in-right', 'slide-in-left', 'slide-out-left', 'slide-out-right');
+            });
+
             if (currentSlide) {
+                currentSlide.classList.add('active');
                 if (currentIndex > previousIndex || (previousIndex === slides.length - 1 && currentIndex === 0)) {
                     // Next slide or last to first
-                    currentSlide.classList.add('active', 'slide-in-right');
+                    currentSlide.classList.add('slide-in-right');
                     if (previousSlide) {
                         previousSlide.classList.add('slide-out-left');
                     }
                 } else if (currentIndex < previousIndex || (previousIndex === 0 && currentIndex === slides.length - 1)) {
                     // Previous slide or first to last
-                    currentSlide.classList.add('active', 'slide-in-left');
+                    currentSlide.classList.add('slide-in-left');
                     if (previousSlide) {
                         previousSlide.classList.add('slide-out-right');
                     }
-                } else if (currentIndex === previousIndex && slides.length > 0) {
-                    // Handle initial load or same index (no animation)
-                    currentSlide.classList.add('active');
                 }
             }
         }
