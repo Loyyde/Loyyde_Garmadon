@@ -277,26 +277,41 @@
 
             imagesElements.forEach((img, i) => {
                 img.classList.remove('slide-active', 'slide-prev', 'slide-next');
-                img.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is enabled
+                img.style.transition = 'transform 0.5s ease-in-out';
                 if (i < currentIndex) {
                     img.classList.add('slide-prev');
-                    img.style.transform = 'translateX(-100%)'; // Position all previous off-screen left
+                    img.style.transform = 'translateX(-100%)';
                 } else if (i > currentIndex) {
                     img.classList.add('slide-next');
-                    img.style.transform = 'translateX(100%)'; // Position all next off-screen right
+                    img.style.transform = 'translateX(100%)';
                 }
             });
 
-            nextSlide.classList.add('slide-active');
-            nextSlide.style.transform = 'translateX(0)'; // Bring the active slide into view
-
-            if (outgoingIndex !== -1 && outgoingIndex !== nextIndex) {
-                // The outgoing slide was already positioned as .slide-prev or .slide-next
-                // We might need to handle the animation of the outgoing slide more explicitly if needed.
-                // For now, its final position is already set in the loop.
-            } else if (outgoingIndex === -1 && imagesElements.length > 0) {
-                imagesElements[0].classList.add('slide-active');
-                imagesElements[0].style.transform = 'translateX(0)';
+            // Handle the exceptions for circular navigation
+            if (outgoingIndex === imagesElements.length - 1 && nextIndex === 0) {
+                // Last to First: Incoming should appear from the right
+                nextSlide.classList.remove('slide-prev', 'slide-next');
+                nextSlide.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    nextSlide.classList.add('slide-active');
+                    nextSlide.style.transform = 'translateX(0)';
+                }, 50);
+            } else if (outgoingIndex === 0 && nextIndex === imagesElements.length - 1) {
+                // First to Last: Incoming should appear from the left
+                nextSlide.classList.remove('slide-prev', 'slide-next');
+                nextSlide.style.transform = 'translateX(-100%)';
+                setTimeout(() => {
+                    nextSlide.classList.add('slide-active');
+                    nextSlide.style.transform = 'translateX(0)';
+                }, 50);
+            } else {
+                // Normal navigation
+                nextSlide.classList.remove('slide-prev', 'slide-next');
+                nextSlide.style.transform = (direction === 'next' || nextIndex > outgoingIndex) ? 'translateX(100%)' : 'translateX(-100%)';
+                setTimeout(() => {
+                    nextSlide.classList.add('slide-active');
+                    nextSlide.style.transform = 'translateX(0)';
+                }, 50);
             }
 
             updateRectangles();
