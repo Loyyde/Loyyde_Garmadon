@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentIndex = 0;
     const intervalTime = 5000;
     let slideshowInterval;
+    let isTransitioning = false; // Flag to prevent rapid clicks
 
     if (!slideshowContainer || imagesElements.length === 0) {
         console.log("Slideshow container or images not found.");
@@ -22,11 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showImage(index) {
-        if (index < 0 || index >= imagesElements.length || index === currentIndex) {
+        if (index < 0 || index >= imagesElements.length || index === currentIndex || isTransitioning) {
             return;
         }
 
         stopSlideshow();
+        isTransitioning = true;
 
         const prevIndex = currentIndex;
         currentIndex = index;
@@ -46,6 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.classList.add('slide-prev');
                 img.style.transform = 'translateX(-100%)';
             }
+
+            img.addEventListener('transitionend', () => {
+                isTransitioning = false;
+            }, { once: true });
         });
 
         updateRectangles();
@@ -53,6 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function nextSlide() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
         const prevIndex = currentIndex;
         currentIndex = (currentIndex + 1) % imagesElements.length;
 
@@ -71,12 +80,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.classList.add('slide-next');
                 img.style.transform = 'translateX(100%)';
             }
+
+            img.addEventListener('transitionend', () => {
+                if (i === currentIndex) {
+                    isTransitioning = false;
+                }
+            }, { once: true });
         });
 
         updateRectangles();
     }
 
     function prevSlide() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
         const prevIndex = currentIndex;
         currentIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
 
@@ -95,6 +113,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.classList.add('slide-prev');
                 img.style.transform = 'translateX(-100%)';
             }
+
+            img.addEventListener('transitionend', () => {
+                if (i === currentIndex) {
+                    isTransitioning = false;
+                }
+            }, { once: true });
         });
 
         updateRectangles();
