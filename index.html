@@ -19,7 +19,7 @@
             width: 100%; /* Make header span the full width */
             text-align: center; /* Center content within header */
             padding: 10px 0; /* Add some padding */
-            background-color: #ddd; /* Example background color */
+            background-color: transparent; /* Make the header transparent */
             z-index: 101; /* Ensure it's above the slideshow */
             position: absolute; /* Allow overlapping */
             top: 0;
@@ -45,7 +45,7 @@
             max-height: 100vh; /* Initially set max height to screen height */
             overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
             margin: 20px 0; /* Add some margin above and below the slideshow */
-            margin-top: -30px; /* Adjust this value to control the overlap */
+            margin-top: -30px; /* Adjust this value to control the header overlap */
             z-index: 1; /* Ensure slideshow is below the header */
         }
 
@@ -64,7 +64,8 @@
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: -30px; /* Adjust this value to overlap with the slideshow */
+            z-index: 2; /* Ensure dots are above the slideshow */
         }
 
         .rectangle {
