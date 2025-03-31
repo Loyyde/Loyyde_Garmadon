@@ -38,12 +38,13 @@
 
         #slideshow-container {
             position: relative; /* Needed for clipping */
-            width: 80%;
-            max-height: 80vh;
+            width: 100%; /* Always match the width */
             overflow: hidden; /* Hide slides that are off-screen */
             margin: 20px 0;
             margin-top: -30px;
             z-index: 1;
+            display: flex;
+            justify-content: center; /* Center the slides horizontally */
         }
 
         #slides-strip {
@@ -61,10 +62,11 @@
         }
 
         .slide-container img {
-            width: 100%;
-            height: auto;
-            max-height: 100%;
-            object-fit: contain;
+            width: auto; /* Adjust width based on aspect ratio */
+            max-width: 100%; /* Ensure it doesn't exceed container width */
+            height: auto; /* Adjust height based on aspect ratio */
+            max-height: 100vh; /* Ensure it doesn't exceed initial screen height */
+            object-fit: contain; /* Fit the image within the bounds */
         }
 
         .slide-caption {
@@ -81,7 +83,7 @@
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: -60px; /* Adjust this value to move the dots higher */
+            margin-top: 20px; /* Adjusted margin */
             z-index: 2; /* Ensure dots are above the slideshow */
         }
 
@@ -102,7 +104,7 @@
         #filter-titles {
             display: flex;
             justify-content: center;
-            margin-top: 60px; /* Increased margin to add space */
+            margin-top: 40px; /* Adjusted margin */
             gap: 20px;
         }
 
@@ -222,6 +224,11 @@
         // Set initial height of slideshow container to screen height
         document.addEventListener('DOMContentLoaded', function() {
             slideshowContainer.style.height = window.innerHeight + 'px';
+            // Optional: Remove the fixed height after a short delay to allow it to adjust
+            setTimeout(() => {
+                slideshowContainer.style.height = '';
+                slideshowContainer.style.maxHeight = '80vh'; // Reapply max-height if needed
+            }, 100); // Adjust the delay as needed
         });
 
         function showImage(index) {
