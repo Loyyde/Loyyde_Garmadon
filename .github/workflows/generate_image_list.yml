@@ -1,6 +1,9 @@
 name: Generate Image List
 
-on: [push] # This workflow will run every time you push code to the repository
+on:
+  push:
+    paths:
+      - 'Slide/**' # Trigger workflow when changes occur in the Slide folder or its subfolders
 
 jobs:
   build:
