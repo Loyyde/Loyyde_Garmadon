@@ -148,13 +148,13 @@
 </head>
 <body>
     <div id="header-container">
-        </div>
+    </div>
 
     <div id="slideshow-container">
-        </div>
+    </div>
 
     <div id="rectangle-container">
-        </div>
+    </div>
 
     <div id="filter-titles">
         <div class="filter-title" onclick="loadShowcase('All')">All</div>
@@ -166,10 +166,10 @@
     </div>
 
     <div id="showcase-images">
-        </div>
+    </div>
 
     <div id="footer-container">
-        </div>
+    </div>
 
     <script src="image_list.js"></script>
     <script>
@@ -182,6 +182,7 @@
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
         let allShowcaseFilenames = []; // Store the initial list of all showcase images
+        let preloadedImages = []; // Array to store preloaded image objects
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -211,14 +212,6 @@
         function showImage(index) {
             imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
             imagesElements[index].classList.add('active'); // Show the image at the current index
-
-            // After showing the first image, remove the fixed screen height
-            if (index === 0) {
-                setTimeout(() => {
-                    slideshowContainer.style.height = 'auto';
-                    slideshowContainer.style.maxHeight = 'none';
-                }, 100);
-            }
         }
 
         // Function to update the active state of the rectangles for the slideshow
@@ -248,10 +241,18 @@
             imagesElements = [];
             rectangles = [];
             currentIndex = 0;
+            preloadedImages = []; // Reset preloaded images
+
+            // Preload images
+            filenames.forEach(filename => {
+                const img = new Image();
+                img.src = filename;
+                preloadedImages.push(img);
+            });
 
             filenames.forEach((filename, index) => {
                 const img = document.createElement('img');
-                img.src = filename;
+                img.src = filename; // Set src here as well for the DOM element
                 slideshowContainer.appendChild(img);
                 imagesElements.push(img);
 
@@ -275,6 +276,12 @@
             } else {
                 slideshowContainer.textContent = "No images found for the slideshow.";
             }
+
+            // After showing the first image, remove the fixed screen height
+            setTimeout(() => {
+                slideshowContainer.style.height = 'auto';
+                slideshowContainer.style.maxHeight = 'none';
+            }, 100);
         }
 
         // Function to load showcase images into the grid
