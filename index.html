@@ -19,7 +19,7 @@
             width: 100%; /* Make header span the full width */
             text-align: center; /* Center content within header */
             padding: 10px 0; /* Add some padding */
-            background-color: #ddd; /* Example background color */
+            background-color: transparent; /* Make the header transparent */
             z-index: 101; /* Ensure it's above the slideshow */
             position: absolute; /* Allow overlapping */
             top: 0;
@@ -45,7 +45,7 @@
             max-height: 100vh; /* Initially set max height to screen height */
             overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
             margin: 20px 0; /* Add some margin above and below the slideshow */
-            margin-top: -30px; /* Adjust this value to control the overlap */
+            margin-top: -30px; /* Adjust this value to control the header overlap */
             z-index: 1; /* Ensure slideshow is below the header */
         }
 
@@ -64,7 +64,8 @@
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: -30px; /* Adjust this value to overlap with the slideshow */
+            z-index: 2; /* Ensure dots are above the slideshow */
         }
 
         .rectangle {
@@ -80,6 +81,27 @@
             width: 20px; /* Increase width for active rectangle */
             background-color: black;
         }
+
+        #filter-titles {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .filter-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #ddd;
+            color: #333;
+        }
+
+        .filter-title:hover {
+            background-color: #ccc;
+        }
     </style>
 </head>
 <body>
@@ -94,6 +116,15 @@
 
     <div id="footer-container">
         </div>
+
+    <div id="filter-titles">
+        <div class="filter-title" onclick="filterImages('All')">All</div>
+        <div class="filter-title" onclick="filterImages('Folder1')">Folder1</div>
+        <div class="filter-title" onclick="filterImages('Folder2')">Folder2</div>
+        <div class="filter-title" onclick="filterImages('Folder3')">Folder3</div>
+        <div class="filter-title" onclick="filterImages('Folder4')">Folder4</div>
+    </div>
+
     <script src="image_list.js"></script>
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
@@ -103,6 +134,7 @@
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
+        let allImageFilenames = []; // Store the initial list of all images
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -162,36 +194,57 @@
             }, intervalTime);
         }
 
-        // Slideshow logic
-        if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            imageFilenames.forEach((filename, index) => {
+        // Function to load slides based on a list of filenames
+        function loadSlides(filenames) {
+            slideshowContainer.innerHTML = '';
+            rectangleContainer.innerHTML = '';
+            imagesElements = [];
+            rectangles = [];
+            currentIndex = 0;
+
+            filenames.forEach((filename, index) => {
                 const img = document.createElement('img');
                 img.src = filename;
                 slideshowContainer.appendChild(img);
                 imagesElements.push(img);
 
-                // Create progression rectangles
                 const rectangle = document.createElement('div');
                 rectangle.classList.add('rectangle');
-                rectangle.dataset.index = index; // Store the index
+                rectangle.dataset.index = index;
                 rectangle.addEventListener('click', () => {
                     currentIndex = index;
                     showImage(currentIndex);
                     updateRectangles();
-                    startSlideshow(); // Reset the timer on click
+                    startSlideshow();
                 });
                 rectangleContainer.appendChild(rectangle);
                 rectangles.push(rectangle);
             });
 
-            // Show the first image and update rectangles initially
             if (imagesElements.length > 0) {
                 showImage(currentIndex);
                 updateRectangles();
-                startSlideshow(); // Start the slideshow on page load
+                startSlideshow();
             } else {
-                slideshowContainer.textContent = "No images found in the list.";
+                slideshowContainer.textContent = "No images found for this filter.";
             }
+        }
+
+        // Function to filter images by folder
+        function filterImages(folderName) {
+            let filteredFilenames = [];
+            if (folderName === 'All') {
+                filteredFilenames = allImageFilenames;
+            } else {
+                filteredFilenames = allImageFilenames.filter(filename => filename.includes(`Showcase/${folderName}/`));
+            }
+            loadSlides(filteredFilenames);
+        }
+
+        // Slideshow logic
+        if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
+            allImageFilenames = [...imageFilenames]; // Store the initial list
+            loadSlides(allImageFilenames); // Load all images initially
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
             slideshowContainer.textContent = "Error: Image list not found.";
