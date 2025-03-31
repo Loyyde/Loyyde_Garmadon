@@ -278,17 +278,6 @@
             showNextSetOfImages();
         };
 
-        if (typeof imageFilenames?.slideImageFilenames?.length) {
-            loadSlides(imageFilenames.slideImageFilenames);
-            initSlideshow(); // Initialize slideshow after loading slides
-        } else {
-            console.error("Error: 'imageFilenames.slideImageFilenames' array not found or is not an array in image_list.js");
-            const slideshowContainer = document.getElementById('slideshow-container');
-            if (slideshowContainer) {
-                slideshowContainer.textContent = "Error: Slide image list not found.";
-            }
-        }
-
         if (typeof imageFilenames?.showcaseImageFilenames?.length) {
             loadShowcase('All');
         } else {
