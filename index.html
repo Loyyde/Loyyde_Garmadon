@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Slideshow</title>
+    <title>Gay Zone</title>
     <style>
         body {
             background-color: #f2f2f2;
@@ -85,7 +85,7 @@
         #filter-titles {
             display: flex;
             justify-content: center;
-            margin-top: 30px; /* Add space below the dots */
+            margin-top: 60px; /* Increased margin to add space */
             gap: 20px;
         }
 
@@ -112,12 +112,37 @@
             width: 95%; /* Adjust width as needed */
         }
 
-        #showcase-images img {
+        .image-container {
+            position: relative;
+            overflow: hidden;
             width: calc(20% - 10px); /* Roughly 1/5th width with spacing */
+            margin-bottom: 10px; /* Spacing between rows */
+            border-radius: 5px;
+        }
+
+        #showcase-images img {
+            display: block; /* Ensure image takes the full width of the container */
+            width: 100%;
             height: auto;
             object-fit: cover;
             border-radius: 5px;
-            margin-bottom: 10px; /* Spacing between rows */
+        }
+
+        .overlay {
+            position: absolute;
+            bottom: -30px; /* Initially hidden below */
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-size: 0.9em;
+            transition: bottom 0.3s ease-in-out;
+        }
+
+        .image-container:hover .overlay {
+            bottom: 0; /* Slide up on hover */
         }
     </style>
 </head>
@@ -271,9 +296,21 @@
             }
 
             filteredFilenames.forEach(filename => {
+                const imageContainer = document.createElement('div');
+                imageContainer.classList.add('image-container');
+
                 const img = document.createElement('img');
                 img.src = filename;
-                showcaseImagesContainer.appendChild(img);
+
+                const overlay = document.createElement('div');
+                overlay.classList.add('overlay');
+                const parts = filename.split('/');
+                const imageName = parts[parts.length - 1];
+                overlay.textContent = imageName;
+
+                imageContainer.appendChild(img);
+                imageContainer.appendChild(overlay);
+                showcaseImagesContainer.appendChild(imageContainer);
             });
 
             if (filteredFilenames.length === 0) {
