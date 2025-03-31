@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Slideshow and Showcase</title>
+    <title>Simple Slideshow</title>
     <style>
         body {
             background-color: #f2f2f2;
@@ -19,8 +19,8 @@
             width: 100%; /* Make header span the full width */
             text-align: center; /* Center content within header */
             padding: 10px 0; /* Add some padding */
-            background-color: transparent; /* Make the header transparent */
-            z-index: 101; /* Ensure it's above other content */
+            background-color: #ddd; /* Example background color */
+            z-index: 101; /* Ensure it's above the slideshow */
             position: absolute; /* Allow overlapping */
             top: 0;
             left: 0;
@@ -45,6 +45,7 @@
             max-height: 100vh; /* Initially set max height to screen height */
             overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
             margin: 20px 0; /* Add some margin above and below the slideshow */
+            margin-top: -30px; /* Adjust this value to control the overlap */
             z-index: 1; /* Ensure slideshow is below the header */
         }
 
@@ -63,8 +64,7 @@
         #rectangle-container {
             display: flex;
             justify-content: center;
-            margin-top: 10px; /* Reset margin-top */
-            z-index: 2; /* Ensure dots are above the slideshow */
+            margin-top: 10px;
         }
 
         .rectangle {
@@ -80,43 +80,6 @@
             width: 20px; /* Increase width for active rectangle */
             background-color: black;
         }
-
-        #filter-titles {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            gap: 20px;
-        }
-
-        .filter-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            background-color: #ddd;
-            color: #333;
-        }
-
-        .filter-title:hover {
-            background-color: #ccc;
-        }
-
-        #showcase-images {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr); /* Create 5 columns */
-            gap: 10px; /* Spacing between images */
-            width: 90%; /* Adjust width as needed */
-            margin-top: 20px;
-            margin-bottom: 20px; /* Add some space below the showcase */
-        }
-
-        #showcase-images img {
-            width: 100%;
-            height: auto;
-            object-fit: cover; /* Ensure images fill the grid cells without distortion */
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
@@ -129,31 +92,17 @@
     <div id="rectangle-container">
         </div>
 
-    <div id="filter-titles">
-        <div class="filter-title" onclick="filterShowcaseImages('All')">All</div>
-        <div class="filter-title" onclick="filterShowcaseImages('Folder1')">Folder1</div>
-        <div class="filter-title" onclick="filterShowcaseImages('Folder2')">Folder2</div>
-        <div class="filter-title" onclick="filterShowcaseImages('Folder3')">Folder3</div>
-        <div class="filter-title" onclick="filterShowcaseImages('Folder4')">Folder4</div>
-    </div>
-
-    <div id="showcase-images">
-        </div>
-
     <div id="footer-container">
         </div>
-
     <script src="image_list.js"></script>
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
         const rectangleContainer = document.getElementById('rectangle-container');
-        const showcaseImagesContainer = document.getElementById('showcase-images');
         let imagesElements = [];
         let rectangles = [];
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
-        let allSlideFilenames = []; // Store the initial list of all slide images
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -179,8 +128,8 @@
             slideshowContainer.style.height = window.innerHeight + 'px';
         });
 
-        // Function to show an image at a specific index in the slideshow
-        function showSlideImage(index) {
+        // Function to show an image at a specific index
+        function showImage(index) {
             imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
             imagesElements[index].classList.add('active'); // Show the image at the current index
 
@@ -193,8 +142,8 @@
             }
         }
 
-        // Function to update the active state of the rectangles for the slideshow
-        function updateSlideRectangles() {
+        // Function to update the active state of the rectangles
+        function updateRectangles() {
             rectangles.forEach((rect, index) => {
                 rect.classList.remove('active');
                 if (index === currentIndex) {
@@ -208,95 +157,44 @@
             clearInterval(slideshowInterval); // Clear any existing interval
             slideshowInterval = setInterval(() => {
                 currentIndex = (currentIndex + 1) % imagesElements.length; // Move to the next image, loop if at the end
-                showSlideImage(currentIndex);
-                updateSlideRectangles();
+                showImage(currentIndex);
+                updateRectangles();
             }, intervalTime);
         }
 
-        // Function to load slides into the slideshow
-        function loadSlides(filenames) {
-            slideshowContainer.innerHTML = '';
-            rectangleContainer.innerHTML = '';
-            imagesElements = [];
-            rectangles = [];
-            currentIndex = 0;
-
-            filenames.forEach((filename, index) => {
+        // Slideshow logic
+        if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
+            imageFilenames.forEach((filename, index) => {
                 const img = document.createElement('img');
                 img.src = filename;
                 slideshowContainer.appendChild(img);
                 imagesElements.push(img);
 
+                // Create progression rectangles
                 const rectangle = document.createElement('div');
                 rectangle.classList.add('rectangle');
-                rectangle.dataset.index = index;
+                rectangle.dataset.index = index; // Store the index
                 rectangle.addEventListener('click', () => {
                     currentIndex = index;
-                    showSlideImage(currentIndex);
-                    updateSlideRectangles();
-                    startSlideshow();
+                    showImage(currentIndex);
+                    updateRectangles();
+                    startSlideshow(); // Reset the timer on click
                 });
                 rectangleContainer.appendChild(rectangle);
                 rectangles.push(rectangle);
             });
 
+            // Show the first image and update rectangles initially
             if (imagesElements.length > 0) {
-                showSlideImage(currentIndex);
-                updateSlideRectangles();
-                startSlideshow();
+                showImage(currentIndex);
+                updateRectangles();
+                startSlideshow(); // Start the slideshow on page load
             } else {
-                slideshowContainer.textContent = "No images found for the slideshow.";
+                slideshowContainer.textContent = "No images found in the list.";
             }
-        }
-
-        // Function to load showcase images into the grid
-        function loadShowcaseImages(filenames) {
-            showcaseImagesContainer.innerHTML = '';
-            filenames.forEach(filename => {
-                const img = document.createElement('img');
-                img.src = filename;
-                showcaseImagesContainer.appendChild(img);
-            });
-            if (filenames.length === 0) {
-                showcaseImagesContainer.textContent = "No images found for this category.";
-            }
-        }
-
-        // Function to filter showcase images by folder
-        function filterShowcaseImages(folderName) {
-            let filteredFilenames = [];
-            const showcaseFolders = ['Folder1', 'Folder2', 'Folder3', 'Folder4']; // Add your actual folder names here
-            const showcaseBasePath = 'Showcase/';
-
-            if (folderName === 'All') {
-                let allImages = [];
-                showcaseFolders.forEach(folder => {
-                    const folderImages = imageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folder + '/'));
-                    allImages = [...allImages, ...folderImages];
-                });
-                // Remove duplicates
-                filteredFilenames = [...new Set(allImages)];
-            } else {
-                filteredFilenames = imageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
-            }
-            loadShowcaseImages(filteredFilenames);
-        }
-
-        // Slideshow logic (load images from the 'Slide' folder)
-        if (typeof slideImageFilenames !== 'undefined' && Array.isArray(slideImageFilenames)) {
-            allSlideFilenames = [...slideImageFilenames];
-            loadSlides(allSlideFilenames);
-        } else {
-            console.error("Error: 'slideImageFilenames' array not found or is not an array in slide_list.js");
-            slideshowContainer.textContent = "Error: Slide image list not found.";
-        }
-
-        // Initially load all showcase images
-        if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            filterShowcaseImages('All');
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
-            showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
+            slideshowContainer.textContent = "Error: Image list not found.";
         }
     </script>
 </body>
