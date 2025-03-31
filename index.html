@@ -46,8 +46,7 @@
             margin: 20px 0;
             margin-top: -30px; /* Adjust as needed based on header */
             z-index: 1;
-             /* Set an explicit height initially if needed, or calculate dynamically */
-             height: calc(100vh - 100px); /* Example: Adjust based on header/footer */
+            height: 100vh; /* Set initial height to screen height */
         }
 
         #slideshow-container {
@@ -86,21 +85,21 @@
 
         /* --- NEW: State for the slide moving out (to the RIGHT) - Used when going BACKWARD --- */
         #slideshow-container img.slide-next {
-             transform: translateX(100%); /* Move off-screen right */
-             z-index: 1;
+            transform: translateX(100%); /* Move off-screen right */
+            z-index: 1;
         }
 
-         /* Initial position for a slide coming from the right (Next) */
-         #slideshow-container img.slide-next-position {
-             transform: translateX(100%);
-             z-index: 1;
-         }
+        /* Initial position for a slide coming from the right (Next) */
+        #slideshow-container img.slide-next-position {
+            transform: translateX(100%);
+            z-index: 1;
+        }
 
-         /* Initial position for a slide coming from the left (Previous) */
-         #slideshow-container img.slide-prev-position {
-             transform: translateX(-100%);
-             z-index: 1;
-         }
+        /* Initial position for a slide coming from the left (Previous) */
+        #slideshow-container img.slide-prev-position {
+            transform: translateX(-100%);
+            z-index: 1;
+        }
 
 
         /* --- Rectangle Navigation Styling --- */
@@ -196,16 +195,16 @@
         }
 
         #load-more-button {
-             display: block; /* Make button block level */
-             margin: 20px auto; /* Center the button */
-             padding: 10px 20px;
-             font-size: 1em;
-             cursor: pointer;
-             border: 1px solid #ccc;
-             border-radius: 5px;
-             background-color: #f9f9f9;
-             position: relative; /* Ensure it's above footer */
-             z-index: 2;
+            display: block; /* Make button block level */
+            margin: 20px auto; /* Center the button */
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            position: relative; /* Ensure it's above footer */
+            z-index: 2;
         }
 
 
@@ -217,7 +216,7 @@
 <body>
     <div id="header-container"></div>
 
-    <div id="slideshow-wrapper">
+    <div id="slideshow-wrapper" style="height: 100vh;">
         <div id="slideshow-container"></div>
     </div>
 
@@ -290,39 +289,39 @@
 
                  // --- Manage Classes for Animation ---
                  if (i === previousIndex) {
-                     // --- MODIFIED: Apply correct class based on direction ---
-                     if (direction === 'next') {
-                         img.classList.add('slide-prev'); // Outgoing slide moves LEFT
-                     } else { // direction === 'prev'
-                         img.classList.add('slide-next'); // Outgoing slide moves RIGHT
-                     }
-                     // console.log(`Applying outgoing class to index ${i}: ${img.classList}`);
+                    // --- MODIFIED: Apply correct class based on direction ---
+                    if (direction === 'next') {
+                        img.classList.add('slide-prev'); // Outgoing slide moves LEFT
+                    } else { // direction === 'prev'
+                        img.classList.add('slide-next'); // Outgoing slide moves RIGHT
+                    }
+                    // console.log(`Applying outgoing class to index ${i}: ${img.classList}`);
 
-                 } else if (i === currentIndex) {
-                     // Position the incoming slide off-screen based on direction *before* making it active
-                     img.classList.add(direction === 'next' ? 'slide-next-position' : 'slide-prev-position');
-                     // console.log(`Applying initial position class to index ${i}: ${img.classList}`);
+                } else if (i === currentIndex) {
+                    // Position the incoming slide off-screen based on direction *before* making it active
+                    img.classList.add(direction === 'next' ? 'slide-next-position' : 'slide-prev-position');
+                    // console.log(`Applying initial position class to index ${i}: ${img.classList}`);
 
-                     // Use requestAnimationFrame to ensure the browser applies the initial position
-                     // THEN applies the active class to trigger the transition into view.
-                      requestAnimationFrame(() => {
-                          requestAnimationFrame(() => {
-                              img.classList.remove('slide-next-position', 'slide-prev-position');
-                              img.classList.add('slide-active'); // This triggers the move-in animation.
-                              // console.log(`Applying slide-active to index ${i}: ${img.classList}`);
-                          });
-                      });
+                    // Use requestAnimationFrame to ensure the browser applies the initial position
+                    // THEN applies the active class to trigger the transition into view.
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            img.classList.remove('slide-next-position', 'slide-prev-position');
+                            img.classList.add('slide-active'); // This triggers the move-in animation.
+                            // console.log(`Applying slide-active to index ${i}: ${img.classList}`);
+                        });
+                    });
 
-                 } else {
+                } else {
                     // Ensure other non-involved slides are positioned off-screen (right side by default)
                     // without transition initially, then restore transition.
                     img.style.transition = 'none'; // Temporarily disable transition
                     img.classList.add('slide-next-position'); // Position off-screen right
                     // Restore transition after a tick
                     setTimeout(() => {
-                         img.style.transition = 'transform 0.8s ease-in-out';
+                        img.style.transition = 'transform 0.8s ease-in-out';
                     }, 50);
-                 }
+                }
             });
 
             updateRectangles(); // Update navigation dots
@@ -343,17 +342,17 @@
             showImage(nextIndex, 'next');
         };
 
-         const prevSlide = () => { // Function to go back
-             if (imagesElements.length === 0) return;
-             const prevIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
-             showImage(prevIndex, 'prev');
-         };
+        const prevSlide = () => { // Function to go back
+            if (imagesElements.length === 0) return;
+            const prevIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
+            showImage(prevIndex, 'prev');
+        };
 
         const startSlideshow = () => {
             clearInterval(slideshowInterval); // Clear existing interval
-             if (imagesElements.length > 1) { // Only start if more than one slide
-                 slideshowInterval = setInterval(nextSlide, intervalTime);
-             }
+            if (imagesElements.length > 1) { // Only start if more than one slide
+                slideshowInterval = setInterval(nextSlide, intervalTime);
+            }
         };
 
         const stopSlideshow = () => {
@@ -382,10 +381,10 @@
                 const img = document.createElement('img');
                 img.src = filename;
                 img.alt = `Slide ${index + 1}`;
-                 // Assign initial state (off-screen right) except for the first slide
-                 if (index !== 0) {
-                     img.classList.add('slide-next-position'); // Start all but first off-screen right
-                 }
+                // Assign initial state (off-screen right) except for the first slide
+                if (index !== 0) {
+                    img.classList.add('slide-next-position'); // Start all but first off-screen right
+                }
                 slideshowContainer.appendChild(img);
                 imagesElements.push(img);
 
@@ -395,21 +394,21 @@
                 rectangle.addEventListener('click', () => {
                     stopSlideshow(); // Stop auto-play on manual navigation
                     const clickedIndex = parseInt(rectangle.dataset.index, 10);
-                     if (clickedIndex === currentIndex) return; // Don't do anything if clicking the current dot
+                    if (clickedIndex === currentIndex) return; // Don't do anything if clicking the current dot
 
                     // Determine direction based on clicked index vs current index
                     const direction = clickedIndex > currentIndex ? 'next' : 'prev';
                     // Handle wrap-around case for direction
                     if (currentIndex === imagesElements.length - 1 && clickedIndex === 0) {
                         // Wrapped forward
-                         showImage(clickedIndex, 'next');
+                        showImage(clickedIndex, 'next');
                     } else if (currentIndex === 0 && clickedIndex === imagesElements.length - 1) {
                         // Wrapped backward
                         showImage(clickedIndex, 'prev');
                     } else {
-                         // Standard direction calculation
-                         showImage(clickedIndex, direction);
-                     }
+                        // Standard direction calculation
+                        showImage(clickedIndex, direction);
+                    }
                     // Optional: Restart slideshow after manual click
                     // startSlideshow();
                 });
@@ -418,31 +417,31 @@
             });
 
             if (imagesElements.length > 0) {
-                 // Make the first slide active without transition on initial load
-                 imagesElements[0].style.transition = 'none';
-                 imagesElements[0].classList.remove('slide-next-position'); // Remove initial off-screen position
-                 imagesElements[0].classList.add('slide-active'); // Set initial active slide
-                 // Restore transition after a tick
-                 setTimeout(() => {
-                     imagesElements[0].style.transition = 'transform 0.8s ease-in-out';
-                 }, 50);
+                // Make the first slide active without transition on initial load
+                imagesElements[0].style.transition = 'none';
+                imagesElements[0].classList.remove('slide-next-position'); // Remove initial off-screen position
+                imagesElements[0].classList.add('slide-active'); // Set initial active slide
+                // Restore transition after a tick
+                setTimeout(() => {
+                    imagesElements[0].style.transition = 'transform 0.8s ease-in-out';
+                }, 50);
 
                 updateRectangles(); // Update dots for the first slide
                 startSlideshow(); // Start the automatic slideshow
             } else {
                 slideshowContainer.textContent = "No images found for the slideshow.";
-                 slideshowWrapper.style.height = '100px'; // Set a default height if no images
+                slideshowWrapper.style.height = '100px'; // Set a default height if no images
             }
         };
 
 
         // --- Showcase Logic (Remains the same) ---
-         const createImageContainer = (filename) => {
+        const createImageContainer = (filename) => {
             const container = document.createElement('div');
             container.className = 'image-container';
-             const parts = filename.split('/');
-             const title = parts.pop() || 'Image';
-             container.innerHTML = `<img src="${filename}" alt="${title}"><div class="overlay">${title}</div>`;
+            const parts = filename.split('/');
+            const title = parts.pop() || 'Image';
+            container.innerHTML = `<img src="${filename}" alt="${title}"><div class="overlay">${title}</div>`;
             return container;
         };
 
@@ -464,43 +463,43 @@
                 btn.id = 'load-more-button';
                 btn.textContent = 'Load More';
                 btn.addEventListener('click', showNextSetOfImages);
-                 // Ensure footerContainer is available before inserting
-                 const footerContainer = document.getElementById('footer-container');
-                 if (footerContainer) {
+                // Ensure footerContainer is available before inserting
+                const footerContainer = document.getElementById('footer-container');
+                if (footerContainer) {
                     footerContainer.parentNode.insertBefore(btn, footerContainer);
-                 } else {
-                     document.body.appendChild(btn); // Fallback append to body
-                 }
+                } else {
+                    document.body.appendChild(btn); // Fallback append to body
+                }
             }
         };
 
 
         const loadShowcase = (folderName) => {
             showcaseImagesContainer.innerHTML = '';
-             document.getElementById('load-more-button')?.remove();
+            document.getElementById('load-more-button')?.remove();
 
             const showcaseBasePath = 'Showcase/';
             const showcaseFolders = ['Kendrick', 'Drake', 'Eminem', 'Jay-Z', 'Nas'];
 
             if (!imageFilenames || !imageFilenames.showcaseImageFilenames) {
-                 console.error("Showcase image data is missing.");
-                 showcaseImagesContainer.textContent = "Error: Showcase images not found.";
-                 return;
-             }
+                console.error("Showcase image data is missing.");
+                showcaseImagesContainer.textContent = "Error: Showcase images not found.";
+                return;
+            }
 
             if (folderName === 'All') {
-                 allFilteredFilenames = [...new Set(
-                     showcaseFolders.flatMap(folder =>
-                         (imageFilenames.showcaseImageFilenames || []).filter(filename =>
-                             filename.startsWith(showcaseBasePath + folder + '/')
-                         )
-                     )
-                 )];
-             } else {
-                 allFilteredFilenames = (imageFilenames.showcaseImageFilenames || []).filter(filename =>
-                     filename.startsWith(showcaseBasePath + folderName + '/')
-                 );
-             }
+                allFilteredFilenames = [...new Set(
+                    showcaseFolders.flatMap(folder =>
+                        (imageFilenames.showcaseImageFilenames || []).filter(filename =>
+                            filename.startsWith(showcaseBasePath + folder + '/')
+                        )
+                    )
+                )];
+            } else {
+                allFilteredFilenames = (imageFilenames.showcaseImageFilenames || []).filter(filename =>
+                    filename.startsWith(showcaseBasePath + folderName + '/')
+                );
+            }
 
             displayedImageCount = 0;
             showNextSetOfImages();
@@ -511,28 +510,33 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Use Promise.all to load header/footer potentially faster
             await Promise.all([
-                 loadContent('Header.html', 'header-container'),
-                 loadContent('Footer.html', 'footer-container')
-             ]);
+                loadContent('Header.html', 'header-container'),
+                loadContent('Footer.html', 'footer-container')
+            ]);
+
+            const slideshowWrapper = document.getElementById('slideshow-wrapper');
+            if (slideshowWrapper) {
+                slideshowWrapper.style.height = `${window.innerHeight}px`; // Set initial height
+            }
 
             // Check for imageFilenames existence before accessing properties
             if (typeof imageFilenames !== 'undefined' && imageFilenames.slideImageFilenames && imageFilenames.slideImageFilenames.length > 0) {
-                 loadSlides(imageFilenames.slideImageFilenames);
-             } else {
-                 console.error("Error: 'imageFilenames.slideImageFilenames' array not found or is empty in image_list.js");
-                 slideshowContainer.textContent = "Error: Slide image list not found.";
-                 slideshowWrapper.style.height = '100px';
-             }
+                loadSlides(imageFilenames.slideImageFilenames);
+            } else {
+                console.error("Error: 'imageFilenames.slideImageFilenames' array not found or is empty in image_list.js");
+                slideshowContainer.textContent = "Error: Slide image list not found.";
+                slideshowWrapper.style.height = '100px';
+            }
 
             if (typeof imageFilenames !== 'undefined' && imageFilenames.showcaseImageFilenames) {
-                 loadShowcase('All');
-             } else {
-                 console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found in image_list.js");
-                 showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
-             }
+                loadShowcase('All');
+            } else {
+                console.error("Error: 'imageFilenames.showcaseImageFilenames' array not found in image_list.js");
+                showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
+            }
 
-             slideshowWrapper.addEventListener('mouseenter', stopSlideshow);
-             slideshowWrapper.addEventListener('mouseleave', startSlideshow);
+            slideshowWrapper.addEventListener('mouseenter', stopSlideshow);
+            slideshowWrapper.addEventListener('mouseleave', startSlideshow);
         });
 
     </script>
