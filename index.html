@@ -273,58 +273,44 @@
 
         // --- Slideshow Logic ---
         const showImage = (index, direction = 'next') => {
-            // console.log(`ShowImage called: index=${index}, direction=${direction}, currentIndex=${currentIndex}, previousIndex=${previousIndex}`);
             if (index === currentIndex && imagesElements[index]?.classList.contains('slide-active')) {
-                // console.log("Attempted to show the already active slide. Returning.");
                 return;
             }
-            if (imagesElements.length === 0) return; // Don't run if no images
+            if (imagesElements.length === 0) return;
 
-            previousIndex = currentIndex;
-            currentIndex = index;
+            const nextIndex = index;
+            const outgoingIndex = currentIndex;
+            currentIndex = nextIndex;
+
+            const nextSlide = imagesElements[nextIndex];
+            const outgoingSlide = imagesElements[outgoingIndex];
+
+            if (!nextSlide || !outgoingSlide) return;
 
             imagesElements.forEach((img, i) => {
-                // Clear ALL previous animation/position classes
-                img.classList.remove('slide-active', 'slide-prev', 'slide-next', 'slide-next-position', 'slide-prev-position');
-
-                 // --- Manage Classes for Animation ---
-                 if (i === previousIndex) {
-                    // --- MODIFIED: Apply correct class based on direction ---
-                    if (direction === 'next') {
-                        img.classList.add('slide-prev'); // Outgoing slide moves LEFT
-                    } else { // direction === 'prev'
-                        img.classList.add('slide-next'); // Outgoing slide moves RIGHT
-                    }
-                    // console.log(`Applying outgoing class to index ${i}: ${img.classList}`);
-
-                } else if (i === currentIndex) {
-                    // Position the incoming slide off-screen based on direction *before* making it active
-                    img.classList.add(direction === 'next' ? 'slide-next-position' : 'slide-prev-position');
-                    // console.log(`Applying initial position class to index ${i}: ${img.classList}`);
-
-                    // Use requestAnimationFrame to ensure the browser applies the initial position
-                    // THEN applies the active class to trigger the transition into view.
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            img.classList.remove('slide-next-position', 'slide-prev-position');
-                            img.classList.add('slide-active'); // This triggers the move-in animation.
-                            // console.log(`Applying slide-active to index ${i}: ${img.classList}`);
-                        });
-                    });
-
-                } else {
-                    // Ensure other non-involved slides are positioned off-screen (right side by default)
-                    // without transition initially, then restore transition.
-                    img.style.transition = 'none'; // Temporarily disable transition
-                    img.classList.add('slide-next-position'); // Position off-screen right
-                    // Restore transition after a tick
+                img.classList.remove('slide-active', 'slide-next', 'slide-next-position', 'slide-prev-position');
+                if (i !== outgoingIndex && i !== nextIndex) {
+                    img.style.transition = 'none';
+                    img.classList.add('slide-next-position');
                     setTimeout(() => {
                         img.style.transition = 'transform 0.8s ease-in-out';
                     }, 50);
                 }
             });
 
-            updateRectangles(); // Update navigation dots
+            nextSlide.classList.add(direction === 'next' ? 'slide-next-position' : 'slide-prev-position');
+            outgoingSlide.classList.add(direction === 'next' ? 'slide-prev' : 'slide-next');
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    nextSlide.classList.remove('slide-next-position', 'slide-prev-position');
+                    nextSlide.classList.add('slide-active');
+                    // The outgoing slide will retain its 'slide-prev' or 'slide-next' class
+                    // until the next call to showImage.
+                });
+            });
+
+            updateRectangles();
         };
 
         // Updates only the rectangle navigation dots
