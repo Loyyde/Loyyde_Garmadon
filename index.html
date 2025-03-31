@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Slideshow</title>
+    <title>Simple Slideshow and Showcase</title>
     <style>
         body {
             background-color: #f2f2f2;
@@ -45,7 +45,6 @@
             max-height: 100vh; /* Initially set max height to screen height */
             overflow-y: auto; /* Enable vertical scroll if the image exceeds the container (optional, but kept) */
             margin: 20px 0; /* Add some margin above and below the slideshow */
-            /* Removed margin-top for header overlap */
             z-index: 1; /* Ensure slideshow is below the header */
         }
 
@@ -102,6 +101,22 @@
         .filter-title:hover {
             background-color: #ccc;
         }
+
+        #showcase-images {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* Create 5 columns */
+            gap: 10px; /* Spacing between images */
+            width: 90%; /* Adjust width as needed */
+            margin-top: 20px;
+            margin-bottom: 20px; /* Add some space below the showcase */
+        }
+
+        #showcase-images img {
+            width: 100%;
+            height: auto;
+            object-fit: cover; /* Ensure images fill the grid cells without distortion */
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -115,12 +130,15 @@
         </div>
 
     <div id="filter-titles">
-        <div class="filter-title" onclick="filterImages('All')">All</div>
-        <div class="filter-title" onclick="filterImages('Folder1')">Folder1</div>
-        <div class="filter-title" onclick="filterImages('Folder2')">Folder2</div>
-        <div class="filter-title" onclick="filterImages('Folder3')">Folder3</div>
-        <div class="filter-title" onclick="filterImages('Folder4')">Folder4</div>
+        <div class="filter-title" onclick="filterShowcaseImages('All')">All</div>
+        <div class="filter-title" onclick="filterShowcaseImages('Folder1')">Folder1</div>
+        <div class="filter-title" onclick="filterShowcaseImages('Folder2')">Folder2</div>
+        <div class="filter-title" onclick="filterShowcaseImages('Folder3')">Folder3</div>
+        <div class="filter-title" onclick="filterShowcaseImages('Folder4')">Folder4</div>
     </div>
+
+    <div id="showcase-images">
+        </div>
 
     <div id="footer-container">
         </div>
@@ -129,11 +147,13 @@
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
         const rectangleContainer = document.getElementById('rectangle-container');
+        const showcaseImagesContainer = document.getElementById('showcase-images');
         let imagesElements = [];
         let rectangles = [];
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
+        let allSlideFilenames = []; // Store the initial list of all slide images
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -159,8 +179,8 @@
             slideshowContainer.style.height = window.innerHeight + 'px';
         });
 
-        // Function to show an image at a specific index
-        function showImage(index) {
+        // Function to show an image at a specific index in the slideshow
+        function showSlideImage(index) {
             imagesElements.forEach(img => img.classList.remove('active')); // Hide all images
             imagesElements[index].classList.add('active'); // Show the image at the current index
 
@@ -173,8 +193,8 @@
             }
         }
 
-        // Function to update the active state of the rectangles
-        function updateRectangles() {
+        // Function to update the active state of the rectangles for the slideshow
+        function updateSlideRectangles() {
             rectangles.forEach((rect, index) => {
                 rect.classList.remove('active');
                 if (index === currentIndex) {
@@ -188,12 +208,12 @@
             clearInterval(slideshowInterval); // Clear any existing interval
             slideshowInterval = setInterval(() => {
                 currentIndex = (currentIndex + 1) % imagesElements.length; // Move to the next image, loop if at the end
-                showImage(currentIndex);
-                updateRectangles();
+                showSlideImage(currentIndex);
+                updateSlideRectangles();
             }, intervalTime);
         }
 
-        // Function to load slides based on a list of filenames
+        // Function to load slides into the slideshow
         function loadSlides(filenames) {
             slideshowContainer.innerHTML = '';
             rectangleContainer.innerHTML = '';
@@ -212,8 +232,8 @@
                 rectangle.dataset.index = index;
                 rectangle.addEventListener('click', () => {
                     currentIndex = index;
-                    showImage(currentIndex);
-                    updateRectangles();
+                    showSlideImage(currentIndex);
+                    updateSlideRectangles();
                     startSlideshow();
                 });
                 rectangleContainer.appendChild(rectangle);
@@ -221,40 +241,62 @@
             });
 
             if (imagesElements.length > 0) {
-                showImage(currentIndex);
-                updateRectangles();
+                showSlideImage(currentIndex);
+                updateSlideRectangles();
                 startSlideshow();
             } else {
-                slideshowContainer.textContent = "No images found for this filter.";
+                slideshowContainer.textContent = "No images found for the slideshow.";
             }
         }
 
-        // Function to filter images by folder
-        function filterImages(folderName) {
+        // Function to load showcase images into the grid
+        function loadShowcaseImages(filenames) {
+            showcaseImagesContainer.innerHTML = '';
+            filenames.forEach(filename => {
+                const img = document.createElement('img');
+                img.src = filename;
+                showcaseImagesContainer.appendChild(img);
+            });
+            if (filenames.length === 0) {
+                showcaseImagesContainer.textContent = "No images found for this category.";
+            }
+        }
+
+        // Function to filter showcase images by folder
+        function filterShowcaseImages(folderName) {
             let filteredFilenames = [];
             const showcaseFolders = ['Folder1', 'Folder2', 'Folder3', 'Folder4']; // Add your actual folder names here
+            const showcaseBasePath = 'Showcase/';
 
             if (folderName === 'All') {
                 let allImages = [];
                 showcaseFolders.forEach(folder => {
-                    const folderImages = imageFilenames.filter(filename => filename.includes(`Showcase/${folder}/`));
+                    const folderImages = imageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folder + '/'));
                     allImages = [...allImages, ...folderImages];
                 });
-                // Remove duplicates if any
+                // Remove duplicates
                 filteredFilenames = [...new Set(allImages)];
             } else {
-                filteredFilenames = imageFilenames.filter(filename => filename.includes(`Showcase/${folderName}/`));
+                filteredFilenames = imageFilenames.filter(filename => filename.startsWith(showcaseBasePath + folderName + '/'));
             }
-            loadSlides(filteredFilenames);
+            loadShowcaseImages(filteredFilenames);
         }
 
-        // Slideshow logic
+        // Slideshow logic (load images from the 'Slide' folder)
+        if (typeof slideImageFilenames !== 'undefined' && Array.isArray(slideImageFilenames)) {
+            allSlideFilenames = [...slideImageFilenames];
+            loadSlides(allSlideFilenames);
+        } else {
+            console.error("Error: 'slideImageFilenames' array not found or is not an array in slide_list.js");
+            slideshowContainer.textContent = "Error: Slide image list not found.";
+        }
+
+        // Initially load all showcase images
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            // Load all images initially (optional, you could start with 'All' filter)
-            filterImages('All');
+            filterShowcaseImages('All');
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
-            slideshowContainer.textContent = "Error: Image list not found.";
+            showcaseImagesContainer.textContent = "Error: Showcase image list not found.";
         }
     </script>
 </body>
