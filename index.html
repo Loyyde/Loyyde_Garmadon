@@ -223,27 +223,13 @@
 
         // Set initial height of slideshow container to screen height
         document.addEventListener('DOMContentLoaded', function() {
-            // We don't need to set the height in JavaScript anymore, CSS will handle it.
+            slideshowContainer.style.height = '100vh';
         });
 
         function showImage(index) {
-            const previousIndex = currentIndex;
-            const isFarJump = Math.abs(index - previousIndex) > 1;
-
-            if (isFarJump) {
-                slidesStrip.style.transition = 'none'; // Disable transition
-                currentIndex = index;
-                const translateXValue = -currentIndex * 100 + '%';
-                slidesStrip.style.transform = `translateX(${translateXValue})`;
-                // Re-enable transition after a short delay
-                setTimeout(() => {
-                    slidesStrip.style.transition = 'transform 0.5s ease-in-out';
-                }, 10);
-            } else {
-                currentIndex = index;
-                const translateXValue = -currentIndex * 100 + '%';
-                slidesStrip.style.transform = `translateX(${translateXValue})`;
-            }
+            currentIndex = index;
+            const translateXValue = -currentIndex * 100 + '%';
+            slidesStrip.style.transform = `translateX(${translateXValue})`;
         }
 
         // Function to update the active state of the rectangles for the slideshow
@@ -291,7 +277,12 @@
             rectangles = [];
             currentIndex = 0;
 
+            // Preload images and create slide elements
             filenames.forEach((filename, index) => {
+                // Preload image
+                const imgPreloader = new Image();
+                imgPreloader.src = filename;
+
                 const slideContainer = document.createElement('div');
                 slideContainer.classList.add('slide-container');
 
