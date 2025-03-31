@@ -321,7 +321,8 @@
             });
 
             if (imagesElements.length > 0) {
-                showImage(currentIndex, 'none'); // Initial display without animation
+                // Initially show the first image without animation
+                imagesElements[0].classList.add('active');
                 updateRectangles();
                 startSlideshow();
                 setTimeout(() => {
