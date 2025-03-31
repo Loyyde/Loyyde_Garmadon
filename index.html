@@ -7,25 +7,25 @@
     <style>
         body {
             background-color: #f2f2f2;
-            margin: 0; /* Reset default body margin */
-            display: flex; /* Enable flexbox for centering (optional, but good practice) */
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
-            min-height: 100vh; /* Ensure the body takes up at least the full viewport height */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         #slideshow-container {
-            display: flex; /* Arrange images horizontally */
-            flex-direction: row; /* Ensure images are in a row */
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto; /* Enable horizontal scrolling if images are too wide */
         }
 
         #slideshow-container img {
-            max-width: 100%; /* Ensure images don't exceed container width */
-            height: auto; /* Maintain aspect ratio */
-            margin-right: 10px; /* Add some spacing between images */
+            max-width: 100%;
+            height: auto;
+            margin-right: 10px;
         }
 
-        /* Remove margin from the last image */
         #slideshow-container img:last-child {
             margin-right: 0;
         }
@@ -39,15 +39,15 @@
     <script>
         const slideshowContainer = document.getElementById('slideshow-container');
 
-        // Assuming image_list.js defines an array named 'images'
-        if (typeof images !== 'undefined' && Array.isArray(images)) {
-            images.forEach(imageUrl => {
+        // Assuming image_list.js defines an array named 'imageFilenames'
+        if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
+            imageFilenames.forEach(filename => {
                 const img = document.createElement('img');
-                img.src = imageUrl;
+                img.src = filename;
                 slideshowContainer.appendChild(img);
             });
         } else {
-            console.error("Error: 'images' array not found or is not an array in image_list.js");
+            console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
             slideshowContainer.textContent = "Error: Image list not found.";
         }
     </script>
