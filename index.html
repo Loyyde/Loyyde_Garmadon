@@ -39,9 +39,9 @@
         #slideshow-container {
             position: relative; /* Needed for clipping */
             width: 100%; /* Always match the width */
+            height: 100vh; /* Always match the screen height */
             overflow: hidden; /* Hide slides that are off-screen */
-            margin: 20px 0;
-            margin-top: -30px;
+            margin: 0; /* Remove default margins */
             z-index: 1;
             display: flex;
             justify-content: center; /* Center the slides horizontally */
@@ -65,7 +65,7 @@
             width: auto; /* Adjust width based on aspect ratio */
             max-width: 100%; /* Ensure it doesn't exceed container width */
             height: auto; /* Adjust height based on aspect ratio */
-            max-height: 100vh; /* Ensure it doesn't exceed initial screen height */
+            max-height: 100vh; /* Ensure it doesn't exceed screen height */
             object-fit: contain; /* Fit the image within the bounds */
         }
 
@@ -223,18 +223,27 @@
 
         // Set initial height of slideshow container to screen height
         document.addEventListener('DOMContentLoaded', function() {
-            slideshowContainer.style.height = window.innerHeight + 'px';
-            // Optional: Remove the fixed height after a short delay to allow it to adjust
-            setTimeout(() => {
-                slideshowContainer.style.height = '';
-                slideshowContainer.style.maxHeight = '80vh'; // Reapply max-height if needed
-            }, 100); // Adjust the delay as needed
+            slideshowContainer.style.height = '100vh';
         });
 
         function showImage(index) {
-            currentIndex = index;
-            const translateXValue = -currentIndex * 100 + '%';
-            slidesStrip.style.transform = `translateX(${translateXValue})`;
+            const previousIndex = currentIndex;
+            const isFarJump = Math.abs(index - previousIndex) > 1;
+
+            if (isFarJump) {
+                slidesStrip.style.transition = 'none'; // Disable transition
+                currentIndex = index;
+                const translateXValue = -currentIndex * 100 + '%';
+                slidesStrip.style.transform = `translateX(${translateXValue})`;
+                // Re-enable transition after a short delay
+                setTimeout(() => {
+                    slidesStrip.style.transition = 'transform 0.5s ease-in-out';
+                }, 10);
+            } else {
+                currentIndex = index;
+                const translateXValue = -currentIndex * 100 + '%';
+                slidesStrip.style.transform = `translateX(${translateXValue})`;
+            }
         }
 
         // Function to update the active state of the rectangles for the slideshow
@@ -248,17 +257,24 @@
         }
 
         function nextSlide() {
-            currentIndex = (currentIndex + 1) % imagesElements.length;
-            showImage(currentIndex);
+            let nextIndex = (currentIndex + 1) % imagesElements.length;
+            showImage(nextIndex);
             updateRectangles();
             startSlideshow();
         }
 
         function previousSlide() {
-            currentIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
-            showImage(currentIndex);
+            let prevIndex = (currentIndex - 1 + imagesElements.length) % imagesElements.length;
+            showImage(prevIndex);
             updateRectangles();
             startSlideshow();
+        }
+
+        // Function to handle rectangle clicks
+        function handleRectangleClick(index) {
+            showImage(index);
+            updateRectangles();
+            startSlideshow(); // Restart interval
         }
 
         // Function to start the slideshow interval
@@ -297,10 +313,7 @@
                 rectangle.classList.add('rectangle');
                 rectangle.dataset.index = index;
                 rectangle.addEventListener('click', () => {
-                    clearInterval(slideshowInterval); // Stop interval on manual click
-                    showImage(index);
-                    updateRectangles();
-                    startSlideshow(); // Restart interval
+                    handleRectangleClick(index);
                 });
                 rectangleContainer.appendChild(rectangle);
                 rectangles.push(rectangle);
