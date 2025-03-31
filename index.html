@@ -134,6 +134,7 @@
         let currentIndex = 0;
         const intervalTime = 5000; // Time in milliseconds (5 seconds)
         let slideshowInterval; // Variable to store the interval
+        let allImageFilenames = []; // Store the initial list of all images
 
         // Function to load content from a file into a container
         async function loadContent(url, containerId) {
@@ -232,26 +233,18 @@
         // Function to filter images by folder
         function filterImages(folderName) {
             let filteredFilenames = [];
-            const showcaseFolders = ['Folder1', 'Folder2', 'Folder3', 'Folder4']; // Add your actual folder names here
-
             if (folderName === 'All') {
-                let allImages = [];
-                showcaseFolders.forEach(folder => {
-                    const folderImages = imageFilenames.filter(filename => filename.includes(`Showcase/${folder}/`));
-                    allImages = [...allImages, ...folderImages];
-                });
-                // Remove duplicates if any (though based on description, might not be needed)
-                filteredFilenames = [...new Set(allImages)];
+                filteredFilenames = allImageFilenames;
             } else {
-                filteredFilenames = imageFilenames.filter(filename => filename.includes(`Showcase/${folderName}/`));
+                filteredFilenames = allImageFilenames.filter(filename => filename.includes(`Showcase/${folderName}/`));
             }
             loadSlides(filteredFilenames);
         }
 
         // Slideshow logic
         if (typeof imageFilenames !== 'undefined' && Array.isArray(imageFilenames)) {
-            // Load all images initially (optional, you could start with 'All' filter)
-            filterImages('All');
+            allImageFilenames = [...imageFilenames]; // Store the initial list
+            loadSlides(allImageFilenames); // Load all images initially
         } else {
             console.error("Error: 'imageFilenames' array not found or is not an array in image_list.js");
             slideshowContainer.textContent = "Error: Image list not found.";
