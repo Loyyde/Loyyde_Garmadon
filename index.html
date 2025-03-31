@@ -7,16 +7,11 @@
     <style>
         body {
             margin: 0;
-            background-color: #f2f2f2; /* Changed background color here */
+            background-color: #f2f2f2;
             display: flex;
-            flex-direction: column; /* Ensure header and footer are positioned correctly */
+            flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-        }
-
-        #header-container {
-            width: 100%; /* Make header span the width */
-            margin-bottom: 20px; /* Add some space below the header */
+            min-height: 100vh; /* Ensure scrollbar if content overflows */
         }
 
         .slideshow-container {
@@ -24,11 +19,7 @@
             width: 80%; /* Adjust as needed */
             max-width: 800px; /* Adjust as needed */
             overflow: hidden;
-            flex-grow: 1; /* Allow slideshow to take up remaining vertical space */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: black; /* Keep slideshow background black */
+            margin: 20px 0; /* Add some top and bottom margin */
         }
 
         .slide {
@@ -90,17 +81,9 @@
             width: 40px;
             background-color: black;
         }
-
-        #footer-container {
-            width: 100%; /* Make footer span the width */
-            margin-top: 20px; /* Add some space above the footer */
-        }
     </style>
 </head>
 <body>
-
-    <div id="header-container">
-        </div>
 
     <div class="slideshow-container">
         <div id="slides">
@@ -109,9 +92,6 @@
         <div id="dots-container" class="dots-container">
             </div>
     </div>
-
-    <div id="footer-container">
-        </div>
 
     <script src="image_list.js"></script>
     <script>
@@ -233,20 +213,6 @@
             loadSlides();
             startAutoplay();
         });
-
-        // Script to call header.html
-        fetch('Header.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('header-container').innerHTML = data;
-            });
-
-        // Script to call footer.html
-        fetch('Footer.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('footer-container').innerHTML = data;
-            });
     </script>
 
 </body>
