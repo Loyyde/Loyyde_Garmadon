@@ -65,8 +65,8 @@
             top: 0;
             left: 0; /* Default position */
             opacity: 1; /* Ensure always visible */
-            transform: translateX(100%); /* Start off-screen right */
-            /* --- MODIFIED: Removed opacity from transition --- */
+            transform: translateX(100%); /* Default starting position (off-screen right) */
+            /* --- Transition applied to all slides --- */
             transition: transform 0.8s ease-in-out; /* Smooth transition ONLY for transform */
             display: block; /* Ensure images are block-level */
             z-index: 1; /* Default stack order */
@@ -75,28 +75,24 @@
         /* State for the slide currently visible */
         #slideshow-container img.slide-active {
             transform: translateX(0); /* Bring to center */
-            /* opacity: 1; - Removed, opacity is always 1 */
             z-index: 2; /* Bring active slide to the front */
         }
 
         /* State for the slide moving out (to the left) */
         #slideshow-container img.slide-prev {
             transform: translateX(-100%); /* Move off-screen left */
-            /* opacity: 0; - Removed, opacity is always 1 */
             z-index: 1; /* Ensure it goes behind the new active */
         }
 
          /* Initial position for a slide coming from the right (Next) */
          #slideshow-container img.slide-next-position {
              transform: translateX(100%);
-             /* opacity: 0; - Removed, opacity is always 1 */
              z-index: 1;
          }
 
          /* Initial position for a slide coming from the left (Previous) */
          #slideshow-container img.slide-prev-position {
              transform: translateX(-100%);
-             /* opacity: 0; - Removed, opacity is always 1 */
              z-index: 1;
          }
 
@@ -278,33 +274,34 @@
             currentIndex = index;
 
             imagesElements.forEach((img, i) => {
-                // Clear previous animation classes
+                // Clear previous animation classes first
                 img.classList.remove('slide-active', 'slide-prev', 'slide-next-position', 'slide-prev-position');
 
                  // --- Manage Classes for Animation ---
                  if (i === previousIndex) {
-                     // Assign 'slide-prev' to the outgoing slide to trigger its exit animation
+                     // Assign 'slide-prev' to the outgoing slide. CSS handles the transition.
                      img.classList.add('slide-prev');
                  } else if (i === currentIndex) {
                      // Position the incoming slide off-screen based on direction *before* making it active
                      img.classList.add(direction === 'next' ? 'slide-next-position' : 'slide-prev-position');
 
-                     // Force reflow/repaint VERY briefly to ensure the initial position is registered
-                     // before the 'slide-active' class triggers the transition
+                     // Use requestAnimationFrame to ensure the browser applies the initial position
+                     // THEN applies the active class to trigger the transition into view.
+                     // This does NOT delay the outgoing (.slide-prev) animation.
                       requestAnimationFrame(() => {
                           requestAnimationFrame(() => {
                               img.classList.remove('slide-next-position', 'slide-prev-position');
-                              img.classList.add('slide-active');
+                              img.classList.add('slide-active'); // This triggers the move-in animation.
                           });
                       });
 
                  } else {
-                    // Ensure other slides are positioned off-screen (right side by default) without transition initially
+                    // Ensure other non-involved slides are positioned off-screen (right side by default)
+                    // without transition initially, then restore transition.
                     img.style.transition = 'none'; // Temporarily disable transition
                     img.classList.add('slide-next-position'); // Position off-screen right
                     // Restore transition after a tick
                     setTimeout(() => {
-                         /* --- MODIFIED: Restore only transform transition --- */
                          img.style.transition = 'transform 0.8s ease-in-out';
                     }, 50);
                  }
@@ -391,10 +388,9 @@
             if (imagesElements.length > 0) {
                  // Make the first slide active without transition on initial load
                  imagesElements[0].style.transition = 'none';
-                 imagesElements[0].classList.add('slide-active');
+                 imagesElements[0].classList.add('slide-active'); // Set initial active slide
                  // Restore transition after a tick
                  setTimeout(() => {
-                     /* --- MODIFIED: Restore only transform transition --- */
                      imagesElements[0].style.transition = 'transform 0.8s ease-in-out';
                  }, 50);
 
