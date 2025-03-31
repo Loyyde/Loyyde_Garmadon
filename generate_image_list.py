@@ -9,7 +9,7 @@ if os.path.exists(slide_folder) and os.path.isdir(slide_folder):
         if any(filename.lower().endswith(ext) for ext in image_extensions):
             image_files.append(filename)
 
-javascript_array = f"const imageFilenames = [\n    '{''},\n    '.join(image_files)}'\n];"
+javascript_array = f"const imageFilenames = [\n    '{''}',\n    '{''}'.join(image_files)\n];"
 
 output_filename = 'image_list.js'
 with open(output_filename, 'w') as f:
