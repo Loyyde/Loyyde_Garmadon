@@ -77,30 +77,15 @@
             z-index: 2; /* Bring active slide to the front */
         }
 
-        /* State for the slide moving out (to the LEFT) - Used when going FORWARD */
+        /* State for any slide BEFORE the current one */
         #slideshow-container img.slide-prev {
-            transform: translateX(-100%); /* Move off-screen left */
+            transform: translateX(-100%); /* Position off-screen left */
             z-index: 1;
-            /* Add a style to make preceding slides partially visible if needed */
-            /* opacity: 0.5;
-            transform: translateX(-50%); */
         }
 
-        /* --- NEW: State for the slide moving out (to the RIGHT) - Used when going BACKWARD --- */
+        /* State for any slide AFTER the current one */
         #slideshow-container img.slide-next {
-            transform: translateX(100%); /* Move off-screen right */
-            z-index: 1;
-        }
-
-        /* Initial position for a slide coming from the right (Next) */
-        #slideshow-container img.slide-next-position {
-            transform: translateX(100%);
-            z-index: 1;
-        }
-
-        /* Initial position for a slide coming from the left (Previous) */
-        #slideshow-container img.slide-prev-position {
-            transform: translateX(-100%);
+            transform: translateX(100%); /* Position off-screen right */
             z-index: 1;
         }
 
@@ -291,29 +276,27 @@
             if (!nextSlide) return;
 
             imagesElements.forEach((img, i) => {
-                img.classList.remove('slide-active', 'slide-next', 'slide-next-position', 'slide-prev-position');
+                img.classList.remove('slide-active', 'slide-prev', 'slide-next');
+                img.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is enabled
                 if (i < currentIndex) {
                     img.classList.add('slide-prev');
+                    img.style.transform = 'translateX(-100%)'; // Position all previous off-screen left
                 } else if (i > currentIndex) {
-                    img.classList.add('slide-next-position'); // Position off-screen right
-                    img.style.transition = 'none';
-                    setTimeout(() => {
-                        img.style.transition = 'transform 0.5s ease-in-out';
-                    }, 50);
+                    img.classList.add('slide-next');
+                    img.style.transform = 'translateX(100%)'; // Position all next off-screen right
                 }
             });
 
-            nextSlide.classList.remove('slide-prev', 'slide-next-position');
             nextSlide.classList.add('slide-active');
-            nextSlide.style.transition = 'transform 0.5s ease-in-out';
+            nextSlide.style.transform = 'translateX(0)'; // Bring the active slide into view
 
             if (outgoingIndex !== -1 && outgoingIndex !== nextIndex) {
-                outgoingSlide.classList.remove('slide-active', 'slide-next-position');
-                outgoingSlide.style.transition = 'transform 0.5s ease-in-out';
-                // The outgoing slide should animate based on the overall direction of change
-                outgoingSlide.classList.add(direction === 'next' ? 'slide-prev' : 'slide-next');
+                // The outgoing slide was already positioned as .slide-prev or .slide-next
+                // We might need to handle the animation of the outgoing slide more explicitly if needed.
+                // For now, its final position is already set in the loop.
             } else if (outgoingIndex === -1 && imagesElements.length > 0) {
                 imagesElements[0].classList.add('slide-active');
+                imagesElements[0].style.transform = 'translateX(0)';
             }
 
             updateRectangles();
@@ -375,7 +358,11 @@
                 img.alt = `Slide ${index + 1}`;
                 // Assign initial state (off-screen right) except for the first slide
                 if (index !== 0) {
-                    img.classList.add('slide-next-position'); // Start all but first off-screen right
+                    img.classList.add('slide-next'); // Start all but first off-screen right
+                    img.style.transform = 'translateX(100%)';
+                } else {
+                    img.classList.add('slide-active');
+                    img.style.transform = 'translateX(0)';
                 }
                 slideshowContainer.appendChild(img);
                 imagesElements.push(img);
@@ -413,15 +400,6 @@
             });
 
             if (imagesElements.length > 0) {
-                // Make the first slide active without transition on initial load
-                imagesElements[0].style.transition = 'none';
-                imagesElements[0].classList.remove('slide-next-position'); // Remove initial off-screen position
-                imagesElements[0].classList.add('slide-active'); // Set initial active slide
-                // Restore transition after a tick
-                setTimeout(() => {
-                    imagesElements[0].style.transition = 'transform 0.5s ease-in-out';
-                }, 50);
-
                 updateRectangles(); // Update dots for the first slide
                 startSlideshow(); // Start the automatic slideshow
             } else {
