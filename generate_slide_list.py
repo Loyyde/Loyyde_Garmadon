@@ -1,21 +1,30 @@
 import os
 
-slide_folder = 'Slide'
-image_extensions = ['.jpg', '.jpeg', '.png', '.gif']
-image_files = []
+def generate_slide_list(root_dir="."):
+    """
+    Generates slide_list.js based on images in the 'Slide' folder.
 
-if os.path.exists(slide_folder) and os.path.isdir(slide_folder):
-    for filename in os.listdir(slide_folder):
-        if any(filename.lower().endswith(ext) for ext in image_extensions):
-            image_files.append(os.path.join(slide_folder, filename))
+    Args:
+        root_dir (str, optional): The root directory where the 'Slide' folder is located. Defaults to ".".
+    """
 
-# Enclose each filename in single quotes
-quoted_image_files = [f"'{file}'" for file in image_files]
+    slide_folder = os.path.join(root_dir, "Slide")
+    slide_image_paths = []
 
-javascript_array = f"const imageFilenames = [\n    {',\n    '.join(quoted_image_files)}\n];"
+    if os.path.exists(slide_folder) and os.path.isdir(slide_folder):
+        for filename in os.listdir(slide_folder):
+            if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
+                slide_image_paths.append(os.path.join("Slide", filename).replace("\\", "/"))
 
-output_filename = 'image_list.js'
-with open(output_filename, 'w') as f:
-    f.write(javascript_array)
+    with open("slide_list.js", "w") as f:
+        f.write("const slideImageFilenames = [\n")
+        for i, path in enumerate(slide_image_paths):
+            f.write(f"    '{path}'{',' if i < len(slide_image_paths) - 1 else ''}\n")
+        f.write("];\n")
 
-print(f"Generated '{output_filename}' with the list of image files.")
+    print("slide_list.js generated successfully.")
+
+if __name__ == "__main__":
+    generate_slide_list()
+    print("\nMake sure you have a 'Slide' folder in the same directory as this script.")
+    print("Place all the images for your slideshow inside the 'Slide' folder.")
