@@ -1,9 +1,10 @@
-name: Generate Image List
+name: Generate Image Lists
 
 on:
   push:
     paths:
-      - 'Slide/**' # Trigger workflow when changes occur in the Slide folder or its subfolders
+      - 'Slide/**'
+      - 'Showcase/**'
 
 jobs:
   build:
@@ -16,19 +17,22 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.x' # Specify your desired Python version
+        python-version: '3.x'
 
     - name: Install dependencies (if any)
       run: |
         python -m pip install --upgrade pip
-        # Add any other dependencies your script might need here
+        # Add any other dependencies your scripts might need here
         # pip install some_package
 
-    - name: Generate image list
-      run: python generate_image_list.py
+    - name: Generate slide list
+      run: python generate_slides.py
+
+    - name: Generate showcase list
+      run: python generate_showcase.py
 
     - name: Commit and push changes
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "Update image list"
-        file_pattern: image_list.js
+        commit_message: "Update image lists"
+        file_pattern: "*.js" # This will commit any changes to .js files (slide_list.js and image_list.js)
